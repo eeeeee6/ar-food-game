@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AR 六大類食物圖卡選擇器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, 'Microsoft JhengHei', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            overflow: hidden;
+        }
+
+        /* 選擇模式 */
+        #select-mode {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            padding: 15px 0;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 22px;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 14px;
+            color: rgba(255,255,255,0.7);
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            flex: 1;
+            padding: 10px 0;
+            align-content: center;
+        }
+
+        .food-card {
+            background: linear-gradient(145deg, #2a2a4a, #1e1e3a);
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 120px;
+        }
+
+        .food-card:hover {
+            transform: scale(1.03);
+        }
+
+        .food-card:active {
+            transform: scale(0.97);
+        }
+
+        .food-card.selected {
+            border-color: #4CAF50;
+            box-shadow: 0 0 20px rgba(76, 175, 80, 0.4);
+        }
+
+        .food-card .emoji {
+            font-size: 40px;
+            margin-bottom: 8px;
+        }
+
+        .food-card .name {
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .food-card .category {
+            font-size: 12px;
+            padding: 3px 10px;
+            border-radius: 10px;
+            color: white;
+        }
+
+        /* 顯示模式 */
+        #display-mode {
+            display: none;
+            width: 100%;
+            height: 100%;
+            background: white;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        #marker-display {
+            width: 90vmin;
+            height: 90vmin;
+            max-width: 500px;
+            max-height: 500px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #marker-display img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        #food-info {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 30px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        #back-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        #back-button:active {
+            transform: scale(0.95);
+        }
+
+        /* 全螢幕按鈕 */
+        #fullscreen-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        /* 亮度調整 */
+        .brightness-control {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(0,0,0,0.7);
+            padding: 8px 15px;
+            border-radius: 20px;
+        }
+
+        .brightness-control label {
+            color: white;
+            font-size: 12px;
+        }
+
+        .brightness-control input {
+            width: 100px;
+        }
+
+        /* 提示文字 */
+        .hint {
+            text-align: center;
+            color: rgba(255,255,255,0.6);
+            font-size: 13px;
+            padding: 15px;
+            line-height: 1.6;
+        }
+
+        /* 模式切換 */
+        .mode-toggle {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            padding: 15px;
+        }
+
+        .mode-btn {
+            padding: 10px 25px;
+            border: 2px solid rgba(255,255,255,0.3);
+            background: transparent;
+            color: white;
+            border-radius: 25px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .mode-btn.active {
+            background: white;
+            color: #1a1a2e;
+            border-color: white;
+        }
+
+        /* 隨機模式 */
+        #random-display {
+            display: none;
+            width: 100%;
+            height: 100%;
+            background: white;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        #shuffle-btn {
+            position: absolute;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 30px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        #shuffle-btn:active {
+            transform: translateX(-50%) scale(0.95);
+        }
+
+        /* 動畫 */
+        @keyframes cardFlip {
+            0% { transform: rotateY(0deg); }
+            50% { transform: rotateY(90deg); }
+            100% { transform: rotateY(0deg); }
+        }
+
+        .flipping {
+            animation: cardFlip 0.5s ease;
+        }
+
+        /* 橫向模式優化 */
+        @media (orientation: landscape) {
+            .cards-grid {
+                grid-template-columns: repeat(6, 1fr);
+                gap: 10px;
+            }
+            
+            .food-card {
+                min-height: 100px;
+                padding: 10px;
+            }
+            
+            .food-card .emoji {
+                font-size: 30px;
+            }
+        }
+
+        /* 大平板優化 */
+        @media (min-width: 768px) {
+            .header h1 {
+                font-size: 28px;
+            }
+            
+            .cards-grid {
+                gap: 20px;
+                padding: 20px;
+            }
+            
+            .food-card {
+                min-height: 150px;
+                padding: 20px;
+            }
+            
+            .food-card .emoji {
+                font-size: 50px;
+            }
+            
+            .food-card .name {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- 選擇模式 -->
+<div id="select-mode">
+    <div class="header">
+        <h1>🍽️ AR 六大類食物圖卡</h1>
+        <p>點選食物類別，顯示圖卡供 AR 掃描</p>
+    </div>
+
+    <div class="mode-toggle">
+        <button class="mode-btn active" onclick="setMode('select')">自由選擇</button>
+        <button class="mode-btn" onclick="setMode('random')">隨機抽卡</button>
+    </div>
+
+    <div class="cards-grid" id="cards-grid">
+        <!-- 由 JavaScript 生成 -->
+    </div>
+
+    <div class="hint">
+        💡 選擇後將顯示大圖，讓另一台裝置的 AR 遊戲掃描<br>
+        建議將螢幕亮度調到最高以提升辨識率
+    </div>
+</div>
+
+<!-- 顯示模式 - 單張圖卡 -->
+<div id="display-mode">
+    <button id="back-button" onclick="backToSelect()">← 返回選擇</button>
+    <button id="fullscreen-btn" onclick="toggleFullscreen()">⛶ 全螢幕</button>
+    
+    <div id="marker-display">
+        <img id="marker-image" src="" alt="食物圖卡">
+    </div>
+    
+    <div class="brightness-control">
+        <label>🔆 亮度</label>
+        <input type="range" id="brightness" min="0.5" max="1.5" step="0.1" value="1" onchange="adjustBrightness(this.value)">
+    </div>
+    
+    <div id="food-info"></div>
+</div>
+
+<!-- 隨機模式 -->
+<div id="random-display">
+    <button id="back-button-random" onclick="backToSelect()">← 返回選擇</button>
+    <button id="fullscreen-btn-random" onclick="toggleFullscreen()">⛶ 全螢幕</button>
+    
+    <div id="random-marker-display" style="width: 90vmin; height: 90vmin; max-width: 500px; max-height: 500px;">
+        <img id="random-marker-image" src="" alt="食物圖卡" style="width: 100%; height: 100%; object-fit: contain;">
+    </div>
+    
+    <button id="shuffle-btn" onclick="shuffleCard()">🎲 抽下一張</button>
+    
+    <div id="random-food-info" style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 12px 30px; border-radius: 30px; text-align: center; font-size: 18px; font-weight: bold;"></div>
+</div>
+
+<script>
+// 食物資料
+const foods = [
+    {
+        id: 1,
+        name: '高麗菜',
+        category: '蔬菜類',
+        emoji: '🥬',
+        color: '#4CAF50',
+        marker: 'imgs/LINE_NOTE_251126_1.jpg'
+    },
+    {
+        id: 2,
+        name: '花生',
+        category: '堅果類',
+        emoji: '🥜',
+        color: '#FDD835',
+        marker: 'imgs/LINE_NOTE_251126_2.jpg'
+    },
+    {
+        id: 3,
+        name: '牛排',
+        category: '豆魚蛋肉類',
+        emoji: '🥩',
+        color: '#FF6B6B',
+        marker: 'imgs/LINE_NOTE_251126_3.jpg'
+    },
+    {
+        id: 4,
+        name: '水果',
+        category: '水果類',
+        emoji: '🍎',
+        color: '#E040FB',
+        marker: 'imgs/LINE_NOTE_251126_4.jpg'
+    },
+    {
+        id: 5,
+        name: '白飯',
+        category: '全穀雜糧類',
+        emoji: '🍚',
+        color: '#FFB74D',
+        marker: 'imgs/LINE_NOTE_251126_5.jpg'
+    },
+    {
+        id: 6,
+        name: '牛奶',
+        category: '乳品類',
+        emoji: '🥛',
+        color: '#29B6F6',
+        marker: 'imgs/LINE_NOTE_251126_6.jpg'
+    }
+];
+
+let currentMode = 'select';
+let shuffledFoods = [];
+let shuffleIndex = 0;
+
+// 生成選擇卡片
+function generateCards() {
+    const grid = document.getElementById('cards-grid');
+    grid.innerHTML = '';
+    
+    foods.forEach(food => {
+        const card = document.createElement('div');
+        card.className = 'food-card';
+        card.onclick = () => selectFood(food);
+        card.innerHTML = `
+            <div class="emoji">${food.emoji}</div>
+            <div class="name">${food.name}</div>
+            <div class="category" style="background: ${food.color}">${food.category}</div>
+        `;
+        grid.appendChild(card);
+    });
+}
+
+// 選擇食物
+function selectFood(food) {
+    document.getElementById('select-mode').style.display = 'none';
+    document.getElementById('display-mode').style.display = 'flex';
+    
+    document.getElementById('marker-image').src = food.marker;
+    document.getElementById('food-info').innerHTML = `${food.emoji} ${food.name} - ${food.category}`;
+    document.getElementById('food-info').style.background = food.color;
+}
+
+// 返回選擇
+function backToSelect() {
+    document.getElementById('select-mode').style.display = 'flex';
+    document.getElementById('display-mode').style.display = 'none';
+    document.getElementById('random-display').style.display = 'none';
+}
+
+// 設定模式
+function setMode(mode) {
+    currentMode = mode;
+    
+    document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    if (mode === 'random') {
+        startRandomMode();
+    }
+}
+
+// 開始隨機模式
+function startRandomMode() {
+    document.getElementById('select-mode').style.display = 'none';
+    document.getElementById('random-display').style.display = 'flex';
+    
+    // 洗牌
+    shuffledFoods = [...foods].sort(() => Math.random() - 0.5);
+    shuffleIndex = 0;
+    showRandomCard();
+}
+
+// 顯示隨機卡片
+function showRandomCard() {
+    const food = shuffledFoods[shuffleIndex];
+    const img = document.getElementById('random-marker-image');
+    const info = document.getElementById('random-food-info');
+    
+    img.classList.add('flipping');
+    
+    setTimeout(() => {
+        img.src = food.marker;
+        info.innerHTML = `${food.emoji} ${food.name} - ${food.category}`;
+        info.style.background = food.color;
+        img.classList.remove('flipping');
+    }, 250);
+}
+
+// 抽下一張
+function shuffleCard() {
+    shuffleIndex = (shuffleIndex + 1) % shuffledFoods.length;
+    
+    // 如果一輪結束，重新洗牌
+    if (shuffleIndex === 0) {
+        shuffledFoods = [...foods].sort(() => Math.random() - 0.5);
+    }
+    
+    showRandomCard();
+}
+
+// 調整亮度
+function adjustBrightness(value) {
+    document.getElementById('marker-image').style.filter = `brightness(${value})`;
+}
+
+// 全螢幕切換
+function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+            console.log('無法進入全螢幕模式');
+        });
+    } else {
+        document.exitFullscreen();
+    }
+}
+
+// 防止螢幕休眠（如果支援）
+async function preventSleep() {
+    try {
+        if ('wakeLock' in navigator) {
+            await navigator.wakeLock.request('screen');
+        }
+    } catch (err) {
+        console.log('Wake Lock 不支援');
+    }
+}
+
+// 初始化
+document.addEventListener('DOMContentLoaded', () => {
+    generateCards();
+    preventSleep();
+});
+
+// 預載圖片
+foods.forEach(food => {
+    const img = new Image();
+    img.src = food.marker;
+});
+</script>
+</body>
+</html>
