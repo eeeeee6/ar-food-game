@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AR 六大類食物遊戲 V2</title>
+    
+    <!-- A-Frame 和 AR.js -->
+    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft JhengHei', sans-serif;
+        }
+
+        /* 背景題目圖 */
+        #background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .a-canvas {
+            z-index: 2 !important;
+        }
+
+        /* 分數顯示 */
+        #score-display {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            background: linear-gradient(135deg, rgba(0,0,0,0.85), rgba(30,30,30,0.95));
+            color: #FFD700;
+            padding: 12px 20px;
+            border-radius: 12px;
+            z-index: 100;
+            font-size: 20px;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+        }
+
+        /* 題目標題 */
+        #question-title {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            background: linear-gradient(135deg, rgba(0,0,0,0.85), rgba(30,30,30,0.95));
+            color: white;
+            padding: 12px 20px;
+            border-radius: 12px;
+            z-index: 100;
+            font-size: 18px;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+        }
+
+        /* 追蹤指示器 */
+        #tracking-status {
+            position: fixed;
+            top: 70px;
+            left: 15px;
+            background: rgba(0,0,0,0.7);
+            padding: 8px 15px;
+            border-radius: 20px;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        #tracking-status .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #666;
+            transition: all 0.3s;
+        }
+
+        #tracking-status .dot.active {
+            background: #4CAF50;
+            box-shadow: 0 0 10px #4CAF50;
+        }
+
+        #tracking-status .text {
+            color: white;
+            font-size: 13px;
+        }
+
+        /* 偵測進度條 */
+        #detection-progress {
+            position: fixed;
+            bottom: 180px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 220px;
+            height: 10px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 5px;
+            overflow: hidden;
+            z-index: 100;
+            display: none;
+        }
+
+        #detection-progress .bar {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            width: 0%;
+            transition: width 0.05s linear;
+            border-radius: 5px;
+        }
+
+        /* 底部 UI */
+        #ui-overlay {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(0,0,0,0.9), rgba(20,20,20,0.95));
+            padding: 20px 35px;
+            border-radius: 20px;
+            display: none;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+            min-width: 280px;
+        }
+
+        #food-title {
+            color: white;
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        #food-category {
+            color: #aaa;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        #confirm-button {
+            padding: 14px 35px;
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        #confirm-button:active {
+            transform: scale(0.95);
+        }
+
+        /* 中央通知 */
+        #notification {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 30px 50px;
+            border-radius: 20px;
+            z-index: 200;
+            font-size: 22px;
+            display: none;
+            text-align: center;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.6);
+        }
+
+        /* 載入畫面 */
+        #loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255,255,255,0.2);
+            border-top-color: #4CAF50;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        #loading-text {
+            color: white;
+            font-size: 20px;
+        }
+
+        /* 說明和開始按鈕 */
+        #start-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 500;
+            padding: 20px;
+        }
+
+        #start-screen h1 {
+            color: white;
+            font-size: 32px;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        #start-screen .instructions {
+            background: rgba(255,255,255,0.15);
+            padding: 25px;
+            border-radius: 15px;
+            color: white;
+            max-width: 350px;
+            margin-bottom: 30px;
+            line-height: 1.8;
+        }
+
+        #start-screen .instructions h3 {
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        #start-screen .instructions p {
+            margin: 8px 0;
+            font-size: 15px;
+        }
+
+        #start-button {
+            padding: 18px 60px;
+            font-size: 22px;
+            background: white;
+            color: #764ba2;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+            transition: transform 0.2s;
+        }
+
+        #start-button:active {
+            transform: scale(0.95);
+        }
+
+        /* 結果畫面 */
+        #result-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 500;
+        }
+
+        #result-screen h1 {
+            color: white;
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+
+        #result-screen .score-box {
+            background: rgba(255,255,255,0.2);
+            padding: 40px 60px;
+            border-radius: 20px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        #result-screen .final-score {
+            color: #FFD700;
+            font-size: 72px;
+            font-weight: bold;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+        }
+
+        #result-screen .score-label {
+            color: white;
+            font-size: 20px;
+            margin-top: 10px;
+        }
+
+        #result-screen .accuracy {
+            color: rgba(255,255,255,0.9);
+            font-size: 18px;
+            margin-top: 15px;
+        }
+
+        #restart-button {
+            padding: 18px 50px;
+            font-size: 20px;
+            background: white;
+            color: #11998e;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+
+<!-- 開始畫面 -->
+<div id="start-screen">
+    <h1>🍽️ AR 六大類食物遊戲</h1>
+    <div class="instructions">
+        <h3>遊戲說明</h3>
+        <p>1️⃣ 畫面會顯示缺少某類食物的餐盤</p>
+        <p>2️⃣ 找到對應的食物圖卡並掃描</p>
+        <p>3️⃣ 對準圖卡 2 秒或點擊確認</p>
+        <p>4️⃣ 共 5 題，測試你的營養知識！</p>
+    </div>
+    <button id="start-button">開始遊戲</button>
+</div>
+
+<!-- 載入畫面 -->
+<div id="loading-overlay" style="display: none;">
+    <div class="spinner"></div>
+    <div id="loading-text">載入中...</div>
+</div>
+
+<!-- 結果畫面 -->
+<div id="result-screen">
+    <h1>🎉 遊戲結束！</h1>
+    <div class="score-box">
+        <div class="final-score" id="final-score">0</div>
+        <div class="score-label">分</div>
+        <div class="accuracy" id="accuracy">正確率: 0%</div>
+    </div>
+    <button id="restart-button">再玩一次</button>
+</div>
+
+<!-- 遊戲 UI -->
+<div id="background"></div>
+<div id="score-display">分數: 0</div>
+<div id="question-title">第 1 題</div>
+
+<div id="tracking-status">
+    <div class="dot" id="tracking-dot"></div>
+    <span class="text">等待掃描...</span>
+</div>
+
+<div id="detection-progress">
+    <div class="bar" id="detection-bar"></div>
+</div>
+
+<div id="notification"></div>
+
+<!-- A-Frame AR 場景 -->
+<a-scene 
+    embedded 
+    arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3;"
+    vr-mode-ui="enabled: false"
+    renderer="logarithmicDepthBuffer: true; precision: medium;">
+    
+    <a-assets timeout="30000">
+        <!-- 使用內建幾何圖形代替 GLB（方便測試） -->
+    </a-assets>
+
+    <!-- 使用 ArUco/Barcode marker (更穩定) -->
+    <!-- Marker 0: 豆魚蛋肉類 -->
+    <a-marker type="barcode" value="0" id="marker1" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
+        <a-box position="0 0.5 0" color="#FF6B6B" scale="0.5 0.5 0.5"
+               animation="property: rotation; to: 0 360 0; dur: 4000; easing: linear; loop: true">
+        </a-box>
+        <a-text value="蛋白質" position="0 1.2 0" align="center" color="#FF6B6B" scale="2 2 2"></a-text>
+    </a-marker>
+    
+    <!-- Marker 1: 蔬菜類 -->
+    <a-marker type="barcode" value="1" id="marker2" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
+        <a-cone position="0 0.5 0" color="#4CAF50" radius-bottom="0.4" height="0.8"
+                animation="property: rotation; to: 0 360 0; dur: 4000; easing: linear; loop: true">
+        </a-cone>
+        <a-text value="蔬菜" position="0 1.2 0" align="center" color="#4CAF50" scale="2 2 2"></a-text>
+    </a-marker>
+    
+    <!-- Marker 2: 全穀雜糧類 -->
+    <a-marker type="barcode" value="2" id="marker3" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
+        <a-cylinder position="0 0.3 0" color="#FFB74D" radius="0.4" height="0.5"
+                    animation="property: rotation; to: 0 360 0; dur: 4000; easing: linear; loop: true">
+        </a-cylinder>
+        <a-text value="全穀" position="0 1.0 0" align="center" color="#FFB74D" scale="2 2 2"></a-text>
+    </a-marker>
+    
+    <!-- Marker 3: 水果類 -->
+    <a-marker type="barcode" value="3" id="marker4" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
+        <a-sphere position="0 0.5 0" color="#E040FB" radius="0.4"
+                  animation="property: rotation; to: 0 360 0; dur: 4000; easing: linear; loop: true">
+        </a-sphere>
+        <a-text value="水果" position="0 1.2 0" align="center" color="#E040FB" scale="2 2 2"></a-text>
+    </a-marker>
+    
+    <!-- Marker 4: 乳品類 -->
+    <a-marker type="barcode" value="4" id="marker5" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
+        <a-box position="0 0.4 0" color="#29B6F6" scale="0.3 0.7 0.3"
+               animation="property: rotation; to: 0 360 0; dur: 4000; easing: linear; loop: true">
+        </a-box>
+        <a-text value="乳品" position="0 1.0 0" align="center" color="#29B6F6" scale="2 2 2"></a-text>
+    </a-marker>
+    
+    <!-- Marker 5: 油脂與堅果種子類 -->
+    <a-marker type="barcode" value="5" id="marker6" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
+        <a-dodecahedron position="0 0.5 0" color="#FDD835" radius="0.35"
+                        animation="property: rotation; to: 0 360 0; dur: 4000; easing: linear; loop: true">
+        </a-dodecahedron>
+        <a-text value="堅果" position="0 1.2 0" align="center" color="#FDD835" scale="2 2 2"></a-text>
+    </a-marker>
+
+    <a-entity camera></a-entity>
+</a-scene>
+
+<div id="ui-overlay">
+    <div id="food-title"></div>
+    <div id="food-category"></div>
+    <button id="confirm-button">確認選擇</button>
+</div>
+
+<script>
+// ============================================================
+// 位置平滑器 - 解決 AR 物體抖動問題
+// ============================================================
+class PositionSmoother {
+    constructor(smoothFactor = 0.7) {
+        this.smoothFactor = smoothFactor;
+        this.lastPositions = new Map();
+        this.lastSeen = new Map();
+        this.timeout = 500;
+    }
+
+    smooth(id, newPos) {
+        const now = Date.now();
+        
+        if (!this.lastPositions.has(id) || 
+            now - this.lastSeen.get(id) > this.timeout) {
+            this.lastPositions.set(id, {...newPos});
+            this.lastSeen.set(id, now);
+            return newPos;
+        }
+
+        const last = this.lastPositions.get(id);
+        const smoothed = {
+            x: last.x * this.smoothFactor + newPos.x * (1 - this.smoothFactor),
+            y: last.y * this.smoothFactor + newPos.y * (1 - this.smoothFactor),
+            z: last.z * this.smoothFactor + newPos.z * (1 - this.smoothFactor)
+        };
+
+        this.lastPositions.set(id, smoothed);
+        this.lastSeen.set(id, now);
+        return smoothed;
+    }
+}
+
+// ============================================================
+// 食物資料
+// ============================================================
+const foodData = [
+    {
+        id: 'marker1',
+        barcodeValue: 0,
+        title: '雞蛋',
+        category: '豆魚蛋肉類',
+        color: '#FF6B6B',
+        questionImage: null // 可替換為實際圖片 URL
+    },
+    {
+        id: 'marker2',
+        barcodeValue: 1,
+        title: '高麗菜',
+        category: '蔬菜類',
+        color: '#4CAF50',
+        questionImage: null
+    },
+    {
+        id: 'marker3',
+        barcodeValue: 2,
+        title: '白飯',
+        category: '全穀雜糧類',
+        color: '#FFB74D',
+        questionImage: null
+    },
+    {
+        id: 'marker4',
+        barcodeValue: 3,
+        title: '柳丁',
+        category: '水果類',
+        color: '#E040FB',
+        questionImage: null
+    },
+    {
+        id: 'marker5',
+        barcodeValue: 4,
+        title: '牛奶',
+        category: '乳品類',
+        color: '#29B6F6',
+        questionImage: null
+    },
+    {
+        id: 'marker6',
+        barcodeValue: 5,
+        title: '花生',
+        category: '油脂與堅果種子類',
+        color: '#FDD835',
+        questionImage: null
+    }
+];
+
+// ============================================================
+// 遊戲狀態
+// ============================================================
+let gameState = {
+    isPlaying: false,
+    currentQuestion: 0,
+    totalQuestions: 5,
+    score: 0,
+    questions: [],
+    currentAnswer: null,
+    scannedMarker: null,
+    isDetecting: false,
+    detectionStartTime: null,
+    autoConfirmDelay: 2000 // 2秒自動確認
+};
+
+const smoother = new PositionSmoother(0.7);
+
+// ============================================================
+// DOM 元素
+// ============================================================
+const elements = {
+    startScreen: document.getElementById('start-screen'),
+    startButton: document.getElementById('start-button'),
+    loadingOverlay: document.getElementById('loading-overlay'),
+    resultScreen: document.getElementById('result-screen'),
+    finalScore: document.getElementById('final-score'),
+    accuracy: document.getElementById('accuracy'),
+    restartButton: document.getElementById('restart-button'),
+    background: document.getElementById('background'),
+    scoreDisplay: document.getElementById('score-display'),
+    questionTitle: document.getElementById('question-title'),
+    trackingDot: document.getElementById('tracking-dot'),
+    trackingStatus: document.getElementById('tracking-status'),
+    detectionProgress: document.getElementById('detection-progress'),
+    detectionBar: document.getElementById('detection-bar'),
+    uiOverlay: document.getElementById('ui-overlay'),
+    foodTitle: document.getElementById('food-title'),
+    foodCategory: document.getElementById('food-category'),
+    confirmButton: document.getElementById('confirm-button'),
+    notification: document.getElementById('notification')
+};
+
+// ============================================================
+// 遊戲函數
+// ============================================================
+function shuffleArray(array) {
+    const arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+}
+
+function initGame() {
+    // 隨機選 5 題
+    gameState.questions = shuffleArray(foodData).slice(0, gameState.totalQuestions);
+    gameState.currentQuestion = 0;
+    gameState.score = 0;
+    gameState.isPlaying = true;
+    
+    updateUI();
+    showQuestion();
+}
+
+function showQuestion() {
+    const question = gameState.questions[gameState.currentQuestion];
+    gameState.currentAnswer = question.id;
+    
+    // 更新背景（如果有題目圖片）
+    if (question.questionImage) {
+        elements.background.style.backgroundImage = `url(${question.questionImage})`;
+    } else {
+        // 顯示文字提示
+        elements.background.style.background = 'transparent';
+    }
+    
+    elements.questionTitle.textContent = `第 ${gameState.currentQuestion + 1} 題`;
+    elements.questionTitle.innerHTML += `<br><small style="font-size:14px;">找「${question.category}」</small>`;
+    
+    resetDetection();
+}
+
+function updateUI() {
+    elements.scoreDisplay.textContent = `分數: ${gameState.score}`;
+}
+
+function resetDetection() {
+    gameState.isDetecting = false;
+    gameState.detectionStartTime = null;
+    gameState.scannedMarker = null;
+    elements.detectionProgress.style.display = 'none';
+    elements.detectionBar.style.width = '0%';
+    elements.uiOverlay.style.display = 'none';
+    elements.trackingDot.classList.remove('active');
+    elements.trackingStatus.querySelector('.text').textContent = '等待掃描...';
+}
+
+function startDetection(markerId) {
+    if (!gameState.isPlaying) return;
+    if (gameState.isDetecting && gameState.scannedMarker === markerId) return;
+    
+    gameState.scannedMarker = markerId;
+    gameState.isDetecting = true;
+    gameState.detectionStartTime = Date.now();
+    
+    // 更新 UI
+    elements.trackingDot.classList.add('active');
+    elements.trackingStatus.querySelector('.text').textContent = '偵測中...';
+    elements.detectionProgress.style.display = 'block';
+    
+    // 顯示食物資訊
+    const food = foodData.find(f => f.id === markerId);
+    if (food) {
+        elements.foodTitle.textContent = food.title;
+        elements.foodCategory.textContent = food.category;
+        elements.uiOverlay.style.display = 'block';
+    }
+    
+    // 開始進度更新
+    updateDetectionProgress();
+}
+
+function updateDetectionProgress() {
+    if (!gameState.isDetecting) return;
+    
+    const elapsed = Date.now() - gameState.detectionStartTime;
+    const progress = Math.min(elapsed / gameState.autoConfirmDelay * 100, 100);
+    
+    elements.detectionBar.style.width = `${progress}%`;
+    
+    if (progress >= 100) {
+        confirmAnswer();
+    } else {
+        requestAnimationFrame(updateDetectionProgress);
+    }
+}
+
+function stopDetection() {
+    gameState.isDetecting = false;
+    elements.trackingDot.classList.remove('active');
+    elements.trackingStatus.querySelector('.text').textContent = '追蹤丟失';
+    
+    // 延遲隱藏 UI
+    setTimeout(() => {
+        if (!gameState.isDetecting) {
+            elements.detectionProgress.style.display = 'none';
+            elements.detectionBar.style.width = '0%';
+            elements.uiOverlay.style.display = 'none';
+        }
+    }, 300);
+}
+
+function confirmAnswer() {
+    if (!gameState.scannedMarker || !gameState.isPlaying) return;
+    
+    const isCorrect = gameState.scannedMarker === gameState.currentAnswer;
+    
+    if (isCorrect) {
+        gameState.score++;
+        updateUI();
+        showFeedback(true, '答對了！+1 分');
+    } else {
+        showFeedback(false, '答錯了！');
+    }
+    
+    // 下一題
+    setTimeout(() => {
+        gameState.currentQuestion++;
+        
+        if (gameState.currentQuestion < gameState.totalQuestions) {
+            showQuestion();
+            showNotification('請找下一個食物！');
+        } else {
+            endGame();
+        }
+    }, 1500);
+}
+
+function showFeedback(isCorrect, message) {
+    Swal.fire({
+        toast: true,
+        position: 'center',
+        icon: isCorrect ? 'success' : 'error',
+        title: message,
+        showConfirmButton: false,
+        timer: 1200,
+        background: isCorrect ? 'rgba(76, 175, 80, 0.95)' : 'rgba(244, 67, 54, 0.95)',
+        color: 'white'
+    });
+}
+
+function showNotification(message) {
+    elements.notification.textContent = message;
+    elements.notification.style.display = 'block';
+    setTimeout(() => {
+        elements.notification.style.display = 'none';
+    }, 2000);
+}
+
+function endGame() {
+    gameState.isPlaying = false;
+    
+    elements.finalScore.textContent = gameState.score;
+    elements.accuracy.textContent = `正確率: ${Math.round(gameState.score / gameState.totalQuestions * 100)}%`;
+    elements.resultScreen.style.display = 'flex';
+}
+
+// ============================================================
+// 事件監聽
+// ============================================================
+
+// 開始按鈕
+elements.startButton.addEventListener('click', () => {
+    elements.startScreen.style.display = 'none';
+    initGame();
+});
+
+// 重新開始按鈕
+elements.restartButton.addEventListener('click', () => {
+    elements.resultScreen.style.display = 'none';
+    initGame();
+});
+
+// 確認按鈕
+elements.confirmButton.addEventListener('click', () => {
+    if (gameState.isDetecting) {
+        confirmAnswer();
+    }
+});
+
+// Marker 事件
+document.querySelectorAll('a-marker').forEach(marker => {
+    marker.addEventListener('markerFound', (event) => {
+        console.log('Marker found:', event.target.id);
+        startDetection(event.target.id);
+    });
+    
+    marker.addEventListener('markerLost', (event) => {
+        console.log('Marker lost:', event.target.id);
+        if (gameState.scannedMarker === event.target.id) {
+            stopDetection();
+        }
+    });
+});
+
+// 頁面載入完成
+window.addEventListener('load', () => {
+    console.log('AR 六大類食物遊戲 V2 已載入');
+});
+</script>
+
+</body>
+</html>
