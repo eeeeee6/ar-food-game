@@ -24,7 +24,7 @@
         #question-background {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-size: contain; background-position: center; background-repeat: no-repeat;
-            z-index: 2; pointer-events: none; opacity: 0.9; display: none;
+            z-index: 2; pointer-events: none; opacity: 0.85; display: none;
         }
 
         #score-display {
@@ -124,29 +124,15 @@
         #camera-prompt p { color: rgba(255,255,255,0.8); margin-bottom: 22px; line-height: 1.6; font-size: 15px; }
         #camera-prompt button { padding: 14px 35px; font-size: 17px; background: white; color: #2c3e50; border: none; border-radius: 30px; cursor: pointer; font-weight: bold; }
 
-        #loading-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            display: none; flex-direction: column; justify-content: center; align-items: center;
-            z-index: 600; padding: 30px; text-align: center;
+        #debug-info {
+            position: fixed; bottom: 10px; left: 10px;
+            background: rgba(0,0,0,0.85); color: #0f0; padding: 10px 14px;
+            border-radius: 10px; font-size: 11px; z-index: 1000;
+            font-family: monospace; max-width: 220px; line-height: 1.5;
         }
-        #loading-screen .spinner {
-            width: 50px; height: 50px; border: 4px solid rgba(255,255,255,0.3);
-            border-top-color: white; border-radius: 50%;
-            animation: spin 1s linear infinite; margin-bottom: 20px;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        #loading-screen p { color: white; font-size: 18px; }
-        #loading-progress { color: rgba(255,255,255,0.7); font-size: 14px; margin-top: 10px; }
     </style>
 </head>
 <body>
-
-<div id="loading-screen">
-    <div class="spinner"></div>
-    <p>載入 3D 模型中...</p>
-    <div id="loading-progress">0 / 6</div>
-</div>
 
 <div id="start-screen">
     <h1>🍽️ AR 六大類食物遊戲</h1>
@@ -186,16 +172,17 @@
 <div id="tracking-status"><div class="dot" id="tracking-dot"></div><span class="text" id="tracking-text">等待掃描...</span></div>
 <div id="detection-progress"><div class="bar" id="detection-bar"></div></div>
 <div id="notification"></div>
+<div id="debug-info">載入中...</div>
 
-<!-- A-Frame AR 場景 - 使用 Pattern Marker 和 3D 模型 -->
+<!-- A-Frame AR 場景 -->
 <a-scene 
     embedded 
-    arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3;"
+    arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3; patternRatio: 0.75;"
     vr-mode-ui="enabled: false"
     renderer="logarithmicDepthBuffer: true; precision: medium;">
 
     <!-- 預載 3D 模型 -->
-    <a-assets timeout="30000">
+    <a-assets timeout="60000">
         <a-asset-item id="model-1" src="models/food_answer1.glb"></a-asset-item>
         <a-asset-item id="model-2" src="models/food_answer2.glb"></a-asset-item>
         <a-asset-item id="model-3" src="models/food_answer3.glb"></a-asset-item>
@@ -204,70 +191,46 @@
         <a-asset-item id="model-6" src="models/food_answer6.glb"></a-asset-item>
     </a-assets>
 
-    <!-- Marker 1: 蔬菜類 (花椰菜) -->
-    <a-marker type="pattern" url="markers/marker_food1.patt" id="marker-1" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
-        <a-entity
-            gltf-model="#model-1"
-            scale="0.5 0.5 0.5"
-            position="0 0 0"
-            animation="property: rotation; to: 0 360 0; dur: 4000; easing: linear; loop: true">
-        </a-entity>
-        <a-text value="蔬菜類" position="0 0.8 0" align="center" color="#4CAF50" scale="1.2 1.2 1.2" side="double"></a-text>
+    <!-- Marker 1: 蔬菜類 -->
+    <a-marker type="pattern" url="markers/marker_food1.patt" id="marker-1" smooth="true" smoothCount="5" smoothTolerance="0.01" smoothThreshold="2">
+        <a-entity gltf-model="#model-1" scale="0.4 0.4 0.4" position="0 0.1 0"
+            animation="property: rotation; to: 0 360 0; dur: 4000; easing: linear; loop: true"></a-entity>
+        <a-text value="蔬菜類" position="0 0.7 0" align="center" color="#4CAF50" scale="1 1 1" side="double"></a-text>
     </a-marker>
     
     <!-- Marker 2: 堅果類 -->
-    <a-marker type="pattern" url="markers/marker_food2.patt" id="marker-2" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
-        <a-entity
-            gltf-model="#model-2"
-            scale="0.5 0.5 0.5"
-            position="0 0 0"
-            animation="property: rotation; to: 0 360 0; dur: 4000; easing: linear; loop: true">
-        </a-entity>
-        <a-text value="堅果類" position="0 0.8 0" align="center" color="#FDD835" scale="1.2 1.2 1.2" side="double"></a-text>
+    <a-marker type="pattern" url="markers/marker_food2.patt" id="marker-2" smooth="true" smoothCount="5" smoothTolerance="0.01" smoothThreshold="2">
+        <a-entity gltf-model="#model-2" scale="0.4 0.4 0.4" position="0 0.1 0"
+            animation="property: rotation; to: 0 360 0; dur: 4000; easing: linear; loop: true"></a-entity>
+        <a-text value="堅果類" position="0 0.7 0" align="center" color="#FDD835" scale="1 1 1" side="double"></a-text>
     </a-marker>
     
-    <!-- Marker 3: 豆魚蛋肉類 (牛排) -->
-    <a-marker type="pattern" url="markers/marker_food3.patt" id="marker-3" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
-        <a-entity
-            gltf-model="#model-3"
-            scale="0.5 0.5 0.5"
-            position="0 0 0"
-            animation="property: rotation; to: 0 360 0; dur: 4000; easing: linear; loop: true">
-        </a-entity>
-        <a-text value="豆魚蛋肉類" position="0 0.8 0" align="center" color="#FF6B6B" scale="1 1 1" side="double"></a-text>
+    <!-- Marker 3: 豆魚蛋肉類 -->
+    <a-marker type="pattern" url="markers/marker_food3.patt" id="marker-3" smooth="true" smoothCount="5" smoothTolerance="0.01" smoothThreshold="2">
+        <a-entity gltf-model="#model-3" scale="0.4 0.4 0.4" position="0 0.1 0"
+            animation="property: rotation; to: 0 360 0; dur: 4000; easing: linear; loop: true"></a-entity>
+        <a-text value="豆魚蛋肉類" position="0 0.7 0" align="center" color="#FF6B6B" scale="0.8 0.8 0.8" side="double"></a-text>
     </a-marker>
     
     <!-- Marker 4: 水果類 -->
-    <a-marker type="pattern" url="markers/marker_food4.patt" id="marker-4" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
-        <a-entity
-            gltf-model="#model-4"
-            scale="0.5 0.5 0.5"
-            position="0 0 0"
-            animation="property: rotation; to: 0 360 0; dur: 4000; easing: linear; loop: true">
-        </a-entity>
-        <a-text value="水果類" position="0 0.8 0" align="center" color="#E040FB" scale="1.2 1.2 1.2" side="double"></a-text>
+    <a-marker type="pattern" url="markers/marker_food4.patt" id="marker-4" smooth="true" smoothCount="5" smoothTolerance="0.01" smoothThreshold="2">
+        <a-entity gltf-model="#model-4" scale="0.4 0.4 0.4" position="0 0.1 0"
+            animation="property: rotation; to: 0 360 0; dur: 4000; easing: linear; loop: true"></a-entity>
+        <a-text value="水果類" position="0 0.7 0" align="center" color="#E040FB" scale="1 1 1" side="double"></a-text>
     </a-marker>
     
-    <!-- Marker 5: 全穀雜糧類 (白飯) -->
-    <a-marker type="pattern" url="markers/marker_food5.patt" id="marker-5" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
-        <a-entity
-            gltf-model="#model-5"
-            scale="0.5 0.5 0.5"
-            position="0 0 0"
-            animation="property: rotation; to: 0 360 0; dur: 4000; easing: linear; loop: true">
-        </a-entity>
-        <a-text value="全穀雜糧類" position="0 0.8 0" align="center" color="#FFB74D" scale="1 1 1" side="double"></a-text>
+    <!-- Marker 5: 全穀雜糧類 -->
+    <a-marker type="pattern" url="markers/marker_food5.patt" id="marker-5" smooth="true" smoothCount="5" smoothTolerance="0.01" smoothThreshold="2">
+        <a-entity gltf-model="#model-5" scale="0.4 0.4 0.4" position="0 0.1 0"
+            animation="property: rotation; to: 0 360 0; dur: 4000; easing: linear; loop: true"></a-entity>
+        <a-text value="全穀雜糧類" position="0 0.7 0" align="center" color="#FFB74D" scale="0.8 0.8 0.8" side="double"></a-text>
     </a-marker>
     
-    <!-- Marker 6: 乳品類 (牛奶) -->
-    <a-marker type="pattern" url="markers/marker_food6.patt" id="marker-6" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
-        <a-entity
-            gltf-model="#model-6"
-            scale="0.5 0.5 0.5"
-            position="0 0 0"
-            animation="property: rotation; to: 0 360 0; dur: 4000; easing: linear; loop: true">
-        </a-entity>
-        <a-text value="乳品類" position="0 0.8 0" align="center" color="#29B6F6" scale="1.2 1.2 1.2" side="double"></a-text>
+    <!-- Marker 6: 乳品類 -->
+    <a-marker type="pattern" url="markers/marker_food6.patt" id="marker-6" smooth="true" smoothCount="5" smoothTolerance="0.01" smoothThreshold="2">
+        <a-entity gltf-model="#model-6" scale="0.4 0.4 0.4" position="0 0.1 0"
+            animation="property: rotation; to: 0 360 0; dur: 4000; easing: linear; loop: true"></a-entity>
+        <a-text value="乳品類" position="0 0.7 0" align="center" color="#29B6F6" scale="1 1 1" side="double"></a-text>
     </a-marker>
 
     <a-entity camera></a-entity>
@@ -280,7 +243,6 @@
 </div>
 
 <script>
-// 題目資料 - 對應題目圖片和正確答案
 const questionData = [
     { image: 'imgs/food_question1_0.png', missingCategory: '蔬菜類', correctMarkerId: 1, color: '#4CAF50' },
     { image: 'imgs/food_question2_0.png', missingCategory: '堅果類', correctMarkerId: 2, color: '#FDD835' },
@@ -290,7 +252,6 @@ const questionData = [
     { image: 'imgs/food_question6_0.png', missingCategory: '乳品類', correctMarkerId: 6, color: '#29B6F6' }
 ];
 
-// Marker 資料
 const markerData = [
     { id: 1, title: '花椰菜', category: '蔬菜類', color: '#4CAF50' },
     { id: 2, title: '堅果', category: '堅果類', color: '#FDD835' },
@@ -300,163 +261,250 @@ const markerData = [
     { id: 6, title: '牛奶', category: '乳品類', color: '#29B6F6' }
 ];
 
-let gameState = { isPlaying: false, currentQuestion: 0, totalQuestions: 6, score: 0, questions: [], currentAnswer: null, scannedMarkerId: null, isDetecting: false, detectionStartTime: null, autoConfirmDelay: 2000, modelsLoaded: false };
-
-const elements = {
-    loadingScreen: document.getElementById('loading-screen'),
-    loadingProgress: document.getElementById('loading-progress'),
-    startScreen: document.getElementById('start-screen'), startButton: document.getElementById('start-button'),
-    cameraPrompt: document.getElementById('camera-prompt'), resultScreen: document.getElementById('result-screen'),
-    finalScore: document.getElementById('final-score'), accuracy: document.getElementById('accuracy'),
-    stats: document.getElementById('stats'), restartButton: document.getElementById('restart-button'),
-    scoreDisplay: document.getElementById('score-display'), questionTitle: document.getElementById('question-title'),
-    questionBackground: document.getElementById('question-background'), trackingDot: document.getElementById('tracking-dot'),
-    trackingText: document.getElementById('tracking-text'), detectionProgress: document.getElementById('detection-progress'),
-    detectionBar: document.getElementById('detection-bar'), uiOverlay: document.getElementById('ui-overlay'),
-    foodTitle: document.getElementById('food-title'), foodCategory: document.getElementById('food-category'),
-    confirmButton: document.getElementById('confirm-button'), notification: document.getElementById('notification')
+let gameState = { 
+    isPlaying: false, currentQuestion: 0, totalQuestions: 6, score: 0, 
+    questions: [], currentAnswer: null, scannedMarkerId: null, 
+    isDetecting: false, detectionStartTime: null, autoConfirmDelay: 2000
 };
 
-function shuffleArray(arr) { const a = [...arr]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
-function showNotification(msg, dur = 2000) { elements.notification.textContent = msg; elements.notification.style.display = 'block'; setTimeout(() => elements.notification.style.display = 'none', dur); }
+const el = {
+    startScreen: document.getElementById('start-screen'),
+    startButton: document.getElementById('start-button'),
+    cameraPrompt: document.getElementById('camera-prompt'),
+    resultScreen: document.getElementById('result-screen'),
+    finalScore: document.getElementById('final-score'),
+    accuracy: document.getElementById('accuracy'),
+    stats: document.getElementById('stats'),
+    restartButton: document.getElementById('restart-button'),
+    scoreDisplay: document.getElementById('score-display'),
+    questionTitle: document.getElementById('question-title'),
+    questionBackground: document.getElementById('question-background'),
+    trackingDot: document.getElementById('tracking-dot'),
+    trackingText: document.getElementById('tracking-text'),
+    detectionProgress: document.getElementById('detection-progress'),
+    detectionBar: document.getElementById('detection-bar'),
+    uiOverlay: document.getElementById('ui-overlay'),
+    foodTitle: document.getElementById('food-title'),
+    foodCategory: document.getElementById('food-category'),
+    confirmButton: document.getElementById('confirm-button'),
+    notification: document.getElementById('notification'),
+    debug: document.getElementById('debug-info')
+};
 
-async function checkCameraPermission() { try { return (await navigator.permissions.query({ name: 'camera' })).state === 'granted'; } catch { return false; } }
+function log(msg) {
+    console.log('[AR]', msg);
+    el.debug.innerHTML = msg + '<br>' + el.debug.innerHTML.split('<br>').slice(0, 6).join('<br>');
+}
+
+function shuffle(arr) { 
+    const a = [...arr]; 
+    for (let i = a.length - 1; i > 0; i--) { 
+        const j = Math.floor(Math.random() * (i + 1)); 
+        [a[i], a[j]] = [a[j], a[i]]; 
+    } 
+    return a; 
+}
+
+function notify(msg, dur = 2000) { 
+    el.notification.textContent = msg; 
+    el.notification.style.display = 'block'; 
+    setTimeout(() => el.notification.style.display = 'none', dur); 
+}
+
 async function requestCameraPermission() {
-    try { const s = await navigator.mediaDevices.getUserMedia({ video: true }); s.getTracks().forEach(t => t.stop()); elements.cameraPrompt.style.display = 'none'; initGame(); }
-    catch { Swal.fire({ icon: 'error', title: '無法存取相機', text: '請在瀏覽器設定中允許相機權限', confirmButtonColor: '#4CAF50' }); }
+    try { 
+        const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }); 
+        s.getTracks().forEach(t => t.stop()); 
+        el.cameraPrompt.style.display = 'none'; 
+        initGame(); 
+    } catch(e) { 
+        log('相機錯誤: ' + e.message);
+        Swal.fire({ icon: 'error', title: '無法存取相機', text: '請在瀏覽器設定中允許相機權限' }); 
+    }
 }
 
 function initGame() {
-    gameState.questions = shuffleArray([...questionData]); gameState.currentQuestion = 0; gameState.score = 0; gameState.isPlaying = true; gameState.totalQuestions = gameState.questions.length;
-    elements.startScreen.style.display = 'none'; elements.resultScreen.style.display = 'none';
-    updateUI(); showQuestion();
+    log('遊戲開始');
+    gameState.questions = shuffle([...questionData]); 
+    gameState.currentQuestion = 0; 
+    gameState.score = 0; 
+    gameState.isPlaying = true;
+    gameState.totalQuestions = gameState.questions.length;
+    el.startScreen.style.display = 'none'; 
+    el.resultScreen.style.display = 'none';
+    updateUI(); 
+    showQuestion();
 }
 
 function showQuestion() {
-    const q = gameState.questions[gameState.currentQuestion]; gameState.currentAnswer = q.correctMarkerId;
-    elements.questionBackground.style.backgroundImage = `url(${q.image})`; elements.questionBackground.style.display = 'block';
-    elements.questionTitle.innerHTML = `第 ${gameState.currentQuestion + 1} 題<span class="target" style="color:${q.color}">找：${q.missingCategory}</span>`;
+    const q = gameState.questions[gameState.currentQuestion]; 
+    gameState.currentAnswer = q.correctMarkerId;
+    el.questionBackground.style.backgroundImage = `url(${q.image})`; 
+    el.questionBackground.style.display = 'block';
+    el.questionTitle.innerHTML = `第 ${gameState.currentQuestion + 1} 題<span class="target" style="color:${q.color}">找：${q.missingCategory}</span>`;
+    log('題目' + (gameState.currentQuestion + 1) + ': ' + q.missingCategory);
     resetDetection();
 }
 
-function updateUI() { elements.scoreDisplay.textContent = `分數: ${gameState.score}`; }
+function updateUI() { el.scoreDisplay.textContent = `分數: ${gameState.score}`; }
 
 function resetDetection() {
-    gameState.isDetecting = false; gameState.detectionStartTime = null; gameState.scannedMarkerId = null;
-    elements.detectionProgress.style.display = 'none'; elements.detectionBar.style.width = '0%';
-    elements.uiOverlay.style.display = 'none'; elements.trackingDot.classList.remove('active'); elements.trackingText.textContent = '等待掃描...';
+    gameState.isDetecting = false; 
+    gameState.detectionStartTime = null; 
+    gameState.scannedMarkerId = null;
+    el.detectionProgress.style.display = 'none'; 
+    el.detectionBar.style.width = '0%';
+    el.uiOverlay.style.display = 'none'; 
+    el.trackingDot.classList.remove('active'); 
+    el.trackingText.textContent = '等待掃描...';
 }
 
 function startDetection(markerId) {
     if (!gameState.isPlaying) return;
     const id = parseInt(markerId.split('-')[1]);
+    log('偵測 Marker ' + id);
+    
     if (gameState.isDetecting && gameState.scannedMarkerId === id) return;
-    gameState.scannedMarkerId = id; gameState.isDetecting = true; gameState.detectionStartTime = Date.now();
-    elements.trackingDot.classList.add('active'); elements.trackingText.textContent = '偵測中...'; elements.detectionProgress.style.display = 'block';
+    
+    gameState.scannedMarkerId = id; 
+    gameState.isDetecting = true; 
+    gameState.detectionStartTime = Date.now();
+    
+    el.trackingDot.classList.add('active'); 
+    el.trackingText.textContent = '偵測中...'; 
+    el.detectionProgress.style.display = 'block';
+    
     const m = markerData.find(x => x.id === id);
-    if (m) { elements.foodTitle.textContent = m.title; elements.foodTitle.style.color = m.color; elements.foodCategory.textContent = m.category; elements.uiOverlay.style.display = 'block'; }
-    updateDetectionProgress();
+    if (m) { 
+        el.foodTitle.textContent = m.title; 
+        el.foodTitle.style.color = m.color; 
+        el.foodCategory.textContent = m.category; 
+        el.uiOverlay.style.display = 'block'; 
+    }
+    updateProgress();
 }
 
-function updateDetectionProgress() {
+function updateProgress() {
     if (!gameState.isDetecting) return;
     const progress = Math.min((Date.now() - gameState.detectionStartTime) / gameState.autoConfirmDelay * 100, 100);
-    elements.detectionBar.style.width = `${progress}%`;
-    if (progress >= 100) confirmAnswer(); else requestAnimationFrame(updateDetectionProgress);
+    el.detectionBar.style.width = `${progress}%`;
+    if (progress >= 100) confirmAnswer(); 
+    else requestAnimationFrame(updateProgress);
 }
 
 function stopDetection() {
-    gameState.isDetecting = false; elements.trackingDot.classList.remove('active'); elements.trackingText.textContent = '追蹤丟失';
-    setTimeout(() => { if (!gameState.isDetecting) { elements.detectionProgress.style.display = 'none'; elements.detectionBar.style.width = '0%'; elements.uiOverlay.style.display = 'none'; } }, 300);
+    if (!gameState.isDetecting) return;
+    log('追蹤丟失');
+    gameState.isDetecting = false; 
+    el.trackingDot.classList.remove('active'); 
+    el.trackingText.textContent = '追蹤丟失';
+    setTimeout(() => { 
+        if (!gameState.isDetecting) { 
+            el.detectionProgress.style.display = 'none'; 
+            el.detectionBar.style.width = '0%'; 
+            el.uiOverlay.style.display = 'none'; 
+        } 
+    }, 300);
 }
 
 function confirmAnswer() {
     if (gameState.scannedMarkerId === null || !gameState.isPlaying) return;
     gameState.isDetecting = false;
     const isCorrect = gameState.scannedMarkerId === gameState.currentAnswer;
-    if (isCorrect) { gameState.score++; updateUI(); Swal.fire({ toast: true, position: 'center', icon: 'success', title: '答對了！+1 分 🎉', showConfirmButton: false, timer: 1200, background: 'rgba(76,175,80,0.95)', color: 'white' }); }
-    else { const cm = markerData.find(x => x.id === gameState.currentAnswer); Swal.fire({ toast: true, position: 'center', icon: 'error', title: `答錯了！正確是 ${cm?.category || ''}`, showConfirmButton: false, timer: 1500, background: 'rgba(244,67,54,0.95)', color: 'white' }); }
-    setTimeout(() => { gameState.currentQuestion++; if (gameState.currentQuestion < gameState.totalQuestions) { showQuestion(); showNotification('請找下一個食物！'); } else endGame(); }, 1600);
+    log(isCorrect ? '答對！' : '答錯');
+    
+    if (isCorrect) { 
+        gameState.score++; 
+        updateUI(); 
+        Swal.fire({ toast: true, position: 'center', icon: 'success', title: '答對了！+1 分 🎉', showConfirmButton: false, timer: 1200, background: 'rgba(76,175,80,0.95)', color: 'white' }); 
+    } else { 
+        const cm = markerData.find(x => x.id === gameState.currentAnswer); 
+        Swal.fire({ toast: true, position: 'center', icon: 'error', title: `答錯了！正確是 ${cm?.category || ''}`, showConfirmButton: false, timer: 1500, background: 'rgba(244,67,54,0.95)', color: 'white' }); 
+    }
+    
+    setTimeout(() => { 
+        gameState.currentQuestion++; 
+        if (gameState.currentQuestion < gameState.totalQuestions) { 
+            showQuestion(); 
+            notify('請找下一個食物！'); 
+        } else endGame();
+    }, 1600);
 }
 
 function endGame() {
-    gameState.isPlaying = false; elements.questionBackground.style.display = 'none';
+    log('遊戲結束');
+    gameState.isPlaying = false; 
+    el.questionBackground.style.display = 'none';
     const acc = Math.round(gameState.score / gameState.totalQuestions * 100);
-    elements.finalScore.textContent = gameState.score; elements.accuracy.textContent = `正確率: ${acc}%`;
-    elements.stats.textContent = `答對 ${gameState.score} 題 / 共 ${gameState.totalQuestions} 題`;
-    elements.resultScreen.style.display = 'flex'; resetDetection();
+    el.finalScore.textContent = gameState.score; 
+    el.accuracy.textContent = `正確率: ${acc}%`;
+    el.stats.textContent = `答對 ${gameState.score} 題 / 共 ${gameState.totalQuestions} 題`;
+    el.resultScreen.style.display = 'flex'; 
+    resetDetection();
 }
 
-elements.startButton.addEventListener('click', async () => { if (await checkCameraPermission()) initGame(); else { elements.startScreen.style.display = 'none'; elements.cameraPrompt.style.display = 'flex'; } });
-elements.restartButton.addEventListener('click', () => { elements.resultScreen.style.display = 'none'; initGame(); });
-elements.confirmButton.addEventListener('click', () => { if (gameState.isDetecting) confirmAnswer(); });
-
-document.querySelectorAll('a-marker').forEach(marker => {
-    marker.addEventListener('markerFound', e => { console.log('Found:', e.target.id); startDetection(e.target.id); });
-    marker.addEventListener('markerLost', e => { console.log('Lost:', e.target.id); if (gameState.scannedMarkerId === parseInt(e.target.id.split('-')[1])) stopDetection(); });
+el.startButton.addEventListener('click', async () => { 
+    log('點擊開始');
+    el.startScreen.style.display = 'none'; 
+    el.cameraPrompt.style.display = 'flex';
 });
 
-// 監聽 3D 模型載入進度
-let loadedModels = 0;
-const totalModels = 6;
+el.restartButton.addEventListener('click', () => { 
+    el.resultScreen.style.display = 'none'; 
+    initGame(); 
+});
 
-function updateLoadingProgress() {
-    loadedModels++;
-    elements.loadingProgress.textContent = `${loadedModels} / ${totalModels}`;
-    if (loadedModels >= totalModels) {
-        gameState.modelsLoaded = true;
-        setTimeout(() => {
-            elements.loadingScreen.style.display = 'none';
-        }, 500);
-    }
-}
+el.confirmButton.addEventListener('click', () => { 
+    if (gameState.isDetecting) confirmAnswer(); 
+});
 
-window.addEventListener('load', () => {
-    console.log('AR遊戲已載入 - 3D 模型版本');
+// 設定 Marker 監聽
+function setupMarkers() {
+    const markers = document.querySelectorAll('a-marker');
+    log('找到 ' + markers.length + ' 個 Marker');
     
-    // 預載題目圖片
-    questionData.forEach(q => { const img = new Image(); img.src = q.image; });
-    
-    // 顯示載入畫面
-    elements.loadingScreen.style.display = 'flex';
-    
-    // 監聽 A-Frame 資源載入
-    const scene = document.querySelector('a-scene');
-    if (scene.hasLoaded) {
-        // 場景已載入
-        for (let i = 1; i <= 6; i++) {
-            const asset = document.querySelector(`#model-${i}`);
-            if (asset) {
-                if (asset.hasLoaded) {
-                    updateLoadingProgress();
-                } else {
-                    asset.addEventListener('loaded', updateLoadingProgress);
-                }
-            }
-        }
-    } else {
-        scene.addEventListener('loaded', () => {
-            for (let i = 1; i <= 6; i++) {
-                const asset = document.querySelector(`#model-${i}`);
-                if (asset) {
-                    if (asset.hasLoaded) {
-                        updateLoadingProgress();
-                    } else {
-                        asset.addEventListener('loaded', updateLoadingProgress);
-                    }
-                }
+    markers.forEach(marker => {
+        marker.addEventListener('markerFound', e => { 
+            log('Found: ' + e.target.id);
+            startDetection(e.target.id); 
+        });
+        marker.addEventListener('markerLost', e => { 
+            log('Lost: ' + e.target.id);
+            if (gameState.scannedMarkerId === parseInt(e.target.id.split('-')[1])) {
+                stopDetection();
             }
         });
-    }
+    });
+}
+
+// 初始化
+window.addEventListener('load', () => {
+    log('頁面載入');
     
-    // 設定超時，避免卡在載入畫面
+    // 預載圖片
+    questionData.forEach(q => { const img = new Image(); img.src = q.image; });
+    
+    const scene = document.querySelector('a-scene');
+    
+    scene.addEventListener('loaded', () => {
+        log('AR 場景就緒');
+        setupMarkers();
+    });
+    
+    scene.addEventListener('arjs-video-loaded', () => {
+        log('相機已啟動');
+    });
+    
+    // 超時保護
     setTimeout(() => {
-        if (!gameState.modelsLoaded) {
-            console.log('載入超時，強制進入遊戲');
-            elements.loadingScreen.style.display = 'none';
+        if (!scene.hasLoaded) {
+            log('場景載入中...');
+            setupMarkers();
         }
-    }, 15000);
+    }, 3000);
 });
+
+window.addEventListener('error', e => log('錯誤: ' + e.message));
 </script>
 </body>
 </html>
