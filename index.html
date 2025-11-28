@@ -11,12 +11,17 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <style>
+        * {
+            box-sizing: border-box;
+        }
+        
         body, html {
             margin: 0;
             padding: 0;
             width: 100%;
             height: 100%;
             overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Microsoft JhengHei', sans-serif;
         }
 
         #background {
@@ -48,85 +53,261 @@
             z-index: 2 !important;
         }
 
-        #ui-overlay {
+        /* ===== 頂部任務提示區 ===== */
+        #mission-bar {
             position: fixed;
-            bottom: 20px;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 12px 15px;
+            background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 80%, transparent 100%);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        /* 題號與進度 */
+        .question-info {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .question-number {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            backdrop-filter: blur(10px);
+        }
+
+        .progress-bar {
+            width: 80px;
+            height: 6px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+
+        /* 分數顯示 */
+        .score-badge {
+            background: linear-gradient(135deg, #FFD700, #FFA000);
+            color: #333;
+            padding: 8px 16px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            box-shadow: 0 3px 15px rgba(255, 215, 0, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .score-badge .icon {
+            font-size: 18px;
+        }
+
+        /* ===== 任務卡片 - 核心提示 ===== */
+        #mission-card {
+            position: fixed;
+            top: 80px;
             left: 50%;
             transform: translateX(-50%);
-            z-index: 3;
-            text-align: center;
-            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 99;
+            background: white;
+            border-radius: 20px;
             padding: 15px 25px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            animation: slideDown 0.5s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .mission-icon {
+            width: 55px;
+            height: 55px;
             border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .mission-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .mission-label {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 2px;
+        }
+
+        .mission-target {
+            font-size: 22px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .mission-hint {
+            font-size: 11px;
+            color: #aaa;
+            margin-top: 3px;
+        }
+
+        /* ===== 掃描成功提示 ===== */
+        #ui-overlay {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 98;
+            text-align: center;
+            background: white;
+            padding: 20px 30px;
+            border-radius: 25px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.25);
             display: none;
+            animation: popUp 0.3s ease;
+        }
+
+        @keyframes popUp {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) scale(1);
+            }
+        }
+
+        .scanned-food {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .scanned-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+        }
+
+        .scanned-info {
+            text-align: left;
         }
 
         #food-title {
-            color: white;
             font-size: 20px;
             font-weight: bold;
-            margin: 8px 0;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+            color: #333;
+        }
+
+        #food-category {
+            font-size: 13px;
+            color: #666;
+            margin-top: 2px;
         }
 
         #confirm-button {
-            padding: 12px 25px;
-            background-color: #4CAF50;
+            width: 100%;
+            padding: 14px 30px;
+            background: linear-gradient(135deg, #4CAF50, #45a049);
             color: white;
             border: none;
-            border-radius: 25px;
+            border-radius: 30px;
             cursor: pointer;
-            font-size: 16px;
-            margin-top: 8px;
+            font-size: 17px;
             font-weight: bold;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+            transition: transform 0.2s;
         }
 
-        #score-display {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background-color: rgba(0, 0, 0, 0.7);
-            color: #FFD700;
-            padding: 10px 15px;
-            border-radius: 10px;
-            z-index: 4;
-            font-size: 18px;
-            font-weight: bold;
+        #confirm-button:active {
+            transform: scale(0.95);
         }
 
-        #question-title {
+        /* ===== 掃描提示動畫 ===== */
+        #scan-hint {
             position: fixed;
-            top: 20px;
-            left: 20px;
-            background-color: rgba(0, 0, 0, 0.7);
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 50;
+            background: rgba(0,0,0,0.7);
             color: white;
-            padding: 10px 15px;
-            border-radius: 10px;
-            z-index: 4;
-            font-size: 16px;
-            font-weight: bold;
-        }
-
-        #question-title .target {
-            display: none;
-            margin-top: 5px;
+            padding: 12px 25px;
+            border-radius: 30px;
             font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            backdrop-filter: blur(10px);
         }
 
+        .scan-icon {
+            animation: scanPulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes scanPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* ===== 通知訊息 ===== */
         #notification {
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background-color: rgba(0, 0, 0, 0.85);
+            background: rgba(0,0,0,0.9);
             color: white;
-            padding: 20px 30px;
-            border-radius: 15px;
-            z-index: 5;
-            font-size: 20px;
+            padding: 25px 40px;
+            border-radius: 20px;
+            z-index: 200;
+            font-size: 22px;
+            font-weight: bold;
             display: none;
+            text-align: center;
+            backdrop-filter: blur(10px);
         }
 
+        /* ===== 開始畫面 ===== */
         #loading-overlay {
             position: fixed;
             top: 0;
@@ -216,6 +397,7 @@
             font-size: 14px;
         }
 
+        /* ===== 結果畫面 ===== */
         #result-screen {
             position: fixed;
             top: 0;
@@ -266,8 +448,6 @@
             cursor: pointer;
             font-weight: bold;
         }
-
-
     </style>
 </head>
 <body>
@@ -305,12 +485,41 @@
 
 <!-- 遊戲畫面 -->
 <div id="background"></div>
-<div id="score-display">分數: 0</div>
-<div id="question-title">第1題<span class="target"></span></div>
+
+<!-- 頂部任務列 -->
+<div id="mission-bar">
+    <div class="question-info">
+        <div class="question-number" id="question-number">第 1 題</div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+        </div>
+    </div>
+    <div class="score-badge">
+        <span class="icon">⭐</span>
+        <span id="score-value">0</span> 分
+    </div>
+</div>
+
+<!-- 任務卡片 - 告訴玩家要找什麼 -->
+<div id="mission-card">
+    <div class="mission-icon" id="mission-icon">🥬</div>
+    <div class="mission-text">
+        <div class="mission-label">🔍 請找出缺少的食物</div>
+        <div class="mission-target" id="mission-target">蔬菜類</div>
+        <div class="mission-hint">掃描對應的圖卡</div>
+    </div>
+</div>
+
+<!-- 掃描提示 -->
+<div id="scan-hint">
+    <span class="scan-icon">📷</span>
+    <span>對準食物圖卡掃描</span>
+</div>
+
+<!-- 通知 -->
 <div id="notification">請找下一個食物！</div>
 
-
-<!-- AR 場景 - 使用與原本相同的設定 -->
+<!-- AR 場景 -->
 <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;">
     <a-assets>
         <a-asset-item id="food1-model" src="models/food_answer1.glb"></a-asset-item>
@@ -321,7 +530,6 @@
         <a-asset-item id="food6-model" src="models/food_answer6.glb"></a-asset-item>
     </a-assets>
 
-    <!-- Marker 設定 - 與原本相同 -->
     <a-marker id="marker1" type="pattern" url="markers/marker_food1.patt">
         <a-entity gltf-model="#food1-model" scale="0.1 0.1 0.1" rotation="-90 0 0"></a-entity>
     </a-marker>
@@ -344,56 +552,74 @@
     <a-entity camera></a-entity>
 </a-scene>
 
-<!-- UI 覆蓋層 -->
+<!-- 掃描成功 UI -->
 <div id="ui-overlay">
-    <div id="food-title"></div>
-    <button id="confirm-button">確認選擇這個食物</button>
+    <div class="scanned-food">
+        <div class="scanned-icon" id="scanned-icon">🥬</div>
+        <div class="scanned-info">
+            <div id="food-title">高麗菜</div>
+            <div id="food-category">蔬菜類</div>
+        </div>
+    </div>
+    <button id="confirm-button">✓ 確認選擇這個食物</button>
 </div>
 
 <script>
-// 題目資料 - marker 編號與你原本一致
+// 題目資料
 const backgrounds = [
     {
         image: 'imgs/food_question1_0.png',
         marker: 'marker1',
         title: '高麗菜',
         category: '蔬菜類',
-        color: '#4CAF50'
+        emoji: '🥬',
+        color: '#4CAF50',
+        bgColor: 'rgba(76, 175, 80, 0.15)'
     },
     {
         image: 'imgs/food_question2_0.png',
         marker: 'marker2',
         title: '花生',
         category: '堅果類',
-        color: '#FDD835'
+        emoji: '🥜',
+        color: '#FDD835',
+        bgColor: 'rgba(253, 216, 53, 0.15)'
     },
     {
         image: 'imgs/food_question3_0.png',
         marker: 'marker3',
         title: '牛排',
         category: '豆魚蛋肉類',
-        color: '#FF6B6B'
+        emoji: '🥩',
+        color: '#FF6B6B',
+        bgColor: 'rgba(255, 107, 107, 0.15)'
     },
     {
         image: 'imgs/food_question4_0.png',
         marker: 'marker4',
         title: '柳丁',
         category: '水果類',
-        color: '#E040FB'
+        emoji: '🍊',
+        color: '#E040FB',
+        bgColor: 'rgba(224, 64, 251, 0.15)'
     },
     {
         image: 'imgs/food_question5_0.png',
         marker: 'marker5',
         title: '白飯',
         category: '全穀雜糧類',
-        color: '#FFB74D'
+        emoji: '🍚',
+        color: '#FFB74D',
+        bgColor: 'rgba(255, 183, 77, 0.15)'
     },
     {
         image: 'imgs/food_question6_0.png',
         marker: 'marker6',
         title: '牛奶',
         category: '乳品類',
-        color: '#29B6F6'
+        emoji: '🥛',
+        color: '#29B6F6',
+        bgColor: 'rgba(41, 182, 246, 0.15)'
     }
 ];
 
@@ -406,26 +632,26 @@ let currentMarker = null;
 let scannedMarker = null;
 let loadedModels = 0;
 const totalModels = 6;
+const totalQuestions = 6;
 
 // DOM 元素
 const background = document.getElementById('background');
 const uiOverlay = document.getElementById('ui-overlay');
-const scoreDisplay = document.getElementById('score-display');
 const confirmButton = document.getElementById('confirm-button');
-const questionTitle = document.getElementById('question-title');
 const notification = document.getElementById('notification');
 const startScreen = document.getElementById('start-screen');
 const startButton = document.getElementById('start-button');
 const loadingOverlay = document.getElementById('loading-overlay');
 const resultScreen = document.getElementById('result-screen');
 const restartButton = document.getElementById('restart-button');
+const scanHint = document.getElementById('scan-hint');
 
-// 日誌（只輸出到 console）
+// 日誌
 function log(msg) {
     console.log('[AR]', msg);
 }
 
-// 洗牌函數
+// 洗牌
 function shuffleArray(array) {
     const arr = [...array];
     for (let i = arr.length - 1; i > 0; i--) {
@@ -435,9 +661,31 @@ function shuffleArray(array) {
     return arr;
 }
 
-// 選擇隨機題目
+// 選擇題目
 function selectRandomBackgrounds() {
     selectedBackgrounds = shuffleArray(backgrounds);
+}
+
+// 更新任務卡片
+function updateMissionCard() {
+    const current = selectedBackgrounds[currentBackgroundIndex];
+    
+    // 更新任務圖示
+    const missionIcon = document.getElementById('mission-icon');
+    missionIcon.textContent = current.emoji;
+    missionIcon.style.background = current.bgColor;
+    missionIcon.style.color = current.color;
+    
+    // 更新任務目標
+    document.getElementById('mission-target').textContent = current.category;
+    document.getElementById('mission-target').style.color = current.color;
+    
+    // 更新題號
+    document.getElementById('question-number').textContent = `第 ${questionsAnswered + 1} 題`;
+    
+    // 更新進度條
+    const progress = (questionsAnswered / totalQuestions) * 100;
+    document.getElementById('progress-fill').style.width = progress + '%';
 }
 
 // 設定背景
@@ -445,18 +693,13 @@ function setBackground() {
     const current = selectedBackgrounds[currentBackgroundIndex];
     background.style.backgroundImage = `url(${current.image})`;
     currentMarker = current.marker;
+    updateMissionCard();
     log('題目: ' + current.category);
 }
 
-// 更新分數顯示
+// 更新分數
 function updateScoreDisplay() {
-    scoreDisplay.textContent = `分數: ${score}`;
-}
-
-// 更新題目標題
-function updateQuestionTitle() {
-    const current = selectedBackgrounds[currentBackgroundIndex];
-    questionTitle.innerHTML = `第${questionsAnswered + 1}題<span class="target" style="color:${current.color}">找：${current.category}</span>`;
+    document.getElementById('score-value').textContent = score;
 }
 
 // 顯示通知
@@ -465,19 +708,19 @@ function showNotification(msg) {
     notification.style.display = 'block';
     setTimeout(() => {
         notification.style.display = 'none';
-    }, 2000);
+    }, 1500);
 }
 
 // 下一題
 function nextQuestion() {
     questionsAnswered++;
-    if (questionsAnswered < 6) {
+    if (questionsAnswered < totalQuestions) {
         currentBackgroundIndex++;
         setBackground();
-        updateQuestionTitle();
         uiOverlay.style.display = 'none';
+        scanHint.style.display = 'flex';
         scannedMarker = null;
-        showNotification();
+        showNotification('下一題！');
     } else {
         endGame();
     }
@@ -488,6 +731,9 @@ function endGame() {
     log('遊戲結束: ' + score + '分');
     background.style.backgroundImage = 'none';
     uiOverlay.style.display = 'none';
+    scanHint.style.display = 'none';
+    document.getElementById('mission-bar').style.display = 'none';
+    document.getElementById('mission-card').style.display = 'none';
     document.getElementById('final-score').textContent = score;
     resultScreen.style.display = 'flex';
 }
@@ -498,9 +744,11 @@ function startGame() {
     startScreen.style.display = 'none';
     loadingOverlay.style.display = 'flex';
     
-    // 等待模型載入或超時
     setTimeout(() => {
         loadingOverlay.style.display = 'none';
+        document.getElementById('mission-bar').style.display = 'flex';
+        document.getElementById('mission-card').style.display = 'flex';
+        scanHint.style.display = 'flex';
         selectRandomBackgrounds();
         currentBackgroundIndex = 0;
         score = 0;
@@ -508,13 +756,15 @@ function startGame() {
         scannedMarker = null;
         updateScoreDisplay();
         setBackground();
-        updateQuestionTitle();
     }, 2000);
 }
 
 // 重新開始
 function restartGame() {
     resultScreen.style.display = 'none';
+    document.getElementById('mission-bar').style.display = 'flex';
+    document.getElementById('mission-card').style.display = 'flex';
+    scanHint.style.display = 'flex';
     selectRandomBackgrounds();
     currentBackgroundIndex = 0;
     score = 0;
@@ -522,10 +772,9 @@ function restartGame() {
     scannedMarker = null;
     updateScoreDisplay();
     setBackground();
-    updateQuestionTitle();
 }
 
-// 確認按鈕事件
+// 確認按鈕
 confirmButton.addEventListener('click', () => {
     log('確認: ' + scannedMarker + ' vs ' + currentMarker);
     if (scannedMarker === currentMarker) {
@@ -557,13 +806,10 @@ confirmButton.addEventListener('click', () => {
     setTimeout(nextQuestion, 1500);
 });
 
-// 開始按鈕事件
 startButton.addEventListener('click', startGame);
-
-// 重新開始按鈕事件
 restartButton.addEventListener('click', restartGame);
 
-// 觸控控制系統（來自你的 ar-6-food-game.js）
+// 觸控控制
 const touchControls = {
     isMoving: false,
     isScaling: false,
@@ -592,15 +838,20 @@ const touchControls = {
             this.initialScale = this.currentModel.getAttribute('scale');
             this.initialRotation = this.currentModel.getAttribute('rotation');
 
-            // 記錄掃描到的 marker
             scannedMarker = event.target.id;
             log('Found: ' + scannedMarker);
             
             const foodItem = backgrounds.find(bg => bg.marker === scannedMarker);
             if (foodItem) {
+                // 更新掃描到的食物資訊
                 document.getElementById('food-title').textContent = foodItem.title;
-                document.getElementById('food-title').style.color = foodItem.color;
+                document.getElementById('food-category').textContent = foodItem.category;
+                document.getElementById('scanned-icon').textContent = foodItem.emoji;
+                document.getElementById('scanned-icon').style.background = foodItem.bgColor;
+                document.getElementById('scanned-icon').style.color = foodItem.color;
+                
                 uiOverlay.style.display = 'block';
+                scanHint.style.display = 'none';
             }
         }
     },
@@ -608,59 +859,42 @@ const touchControls = {
     onMarkerLost(event) {
         log('Lost: ' + event.target.id);
         this.currentModel = null;
-        // 不立即隱藏 UI，讓用戶可以點擊確認
-        // uiOverlay.style.display = 'none';
     },
 
     onTouchStart(event) {
         if (!this.currentModel) return;
-
         if (event.touches.length === 2) {
             this.isScaling = true;
             this.initialDistance = this.getDistance(event.touches[0], event.touches[1]);
         } else if (event.touches.length === 1) {
             this.isMoving = true;
-            this.lastPosition = {
-                x: event.touches[0].pageX,
-                y: event.touches[0].pageY
-            };
+            this.lastPosition = { x: event.touches[0].pageX, y: event.touches[0].pageY };
         }
     },
 
     onTouchMove(event) {
         if (!this.currentModel) return;
-
         if (this.isScaling && event.touches.length === 2) {
             const currentDistance = this.getDistance(event.touches[0], event.touches[1]);
             const scaleFactor = currentDistance / this.initialDistance;
-
-            const minScale = 0.05;
-            const maxScale = 0.3;
+            const minScale = 0.05, maxScale = 0.3;
             let newScale = {
                 x: Math.min(Math.max(this.initialScale.x * scaleFactor, minScale), maxScale),
                 y: Math.min(Math.max(this.initialScale.y * scaleFactor, minScale), maxScale),
                 z: Math.min(Math.max(this.initialScale.z * scaleFactor, minScale), maxScale)
             };
-
             this.currentModel.setAttribute('scale', newScale);
-
         } else if (this.isMoving && event.touches.length === 1) {
             const deltaX = event.touches[0].pageX - this.lastPosition.x;
             const deltaY = event.touches[0].pageY - this.lastPosition.y;
-
             const currentPosition = this.currentModel.getAttribute('position');
             const sensitivity = 0.002;
-
             this.currentModel.setAttribute('position', {
                 x: currentPosition.x + deltaX * sensitivity,
                 y: currentPosition.y - deltaY * sensitivity,
                 z: currentPosition.z
             });
-
-            this.lastPosition = {
-                x: event.touches[0].pageX,
-                y: event.touches[0].pageY
-            };
+            this.lastPosition = { x: event.touches[0].pageX, y: event.touches[0].pageY };
         }
     },
 
@@ -679,7 +913,7 @@ const touchControls = {
     }
 };
 
-// 模型載入檢查
+// 模型載入
 function checkAllModelsLoaded() {
     loadedModels++;
     document.getElementById('loading-text').textContent = `模型載入中... (${loadedModels}/${totalModels})`;
@@ -692,15 +926,16 @@ function checkAllModelsLoaded() {
 document.addEventListener('DOMContentLoaded', () => {
     log('頁面載入完成');
     
-    // 監聽模型載入
+    // 隱藏遊戲 UI
+    document.getElementById('mission-bar').style.display = 'none';
+    document.getElementById('mission-card').style.display = 'none';
+    scanHint.style.display = 'none';
+    
     for (let i = 1; i <= totalModels; i++) {
         const model = document.querySelector(`#food${i}-model`);
-        if (model) {
-            model.addEventListener('loaded', checkAllModelsLoaded);
-        }
+        if (model) model.addEventListener('loaded', checkAllModelsLoaded);
     }
     
-    // 初始化觸控控制
     const scene = document.querySelector('a-scene');
     if (scene.hasLoaded) {
         touchControls.init();
