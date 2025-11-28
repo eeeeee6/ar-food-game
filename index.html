@@ -108,7 +108,7 @@
         }
 
         #question-title .target {
-            display: none;
+            display: block;
             margin-top: 5px;
             font-size: 14px;
         }
@@ -267,9 +267,20 @@
             font-weight: bold;
         }
 
-        /* Debug info - 隱藏 */
+        /* Debug info */
         #debug-info {
-            display: none !important;
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.8);
+            color: #0f0;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 11px;
+            z-index: 1000;
+            font-family: monospace;
+            max-width: 200px;
+            display: block;
         }
     </style>
 </head>
