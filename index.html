@@ -17,275 +17,94 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-        
-        body, html {
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft JhengHei', 'PingFang TC', sans-serif;
-            touch-action: manipulation;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body, html { width: 100%; height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft JhengHei', 'PingFang TC', sans-serif; touch-action: manipulation; }
         .a-canvas { z-index: 1 !important; }
 
-        /* 題目背景圖 */
         #question-background {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-size: contain;
-            background-position: center;
-            background-repeat: no-repeat;
-            z-index: 2;
-            pointer-events: none;
-            opacity: 0.9;
-            display: none;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-size: contain; background-position: center; background-repeat: no-repeat;
+            z-index: 2; pointer-events: none; opacity: 0.9; display: none;
         }
 
         #score-display {
-            position: fixed;
-            top: env(safe-area-inset-top, 10px);
-            right: 10px;
-            margin-top: 10px;
+            position: fixed; top: env(safe-area-inset-top, 10px); right: 10px; margin-top: 10px;
             background: linear-gradient(135deg, rgba(0,0,0,0.9), rgba(30,30,30,0.95));
-            color: #FFD700;
-            padding: 10px 16px;
-            border-radius: 12px;
-            z-index: 100;
-            font-size: 18px;
-            font-weight: bold;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            color: #FFD700; padding: 10px 16px; border-radius: 12px; z-index: 100;
+            font-size: 18px; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
         }
 
         #question-title {
-            position: fixed;
-            top: env(safe-area-inset-top, 10px);
-            left: 10px;
-            margin-top: 10px;
+            position: fixed; top: env(safe-area-inset-top, 10px); left: 10px; margin-top: 10px;
             background: linear-gradient(135deg, rgba(0,0,0,0.9), rgba(30,30,30,0.95));
-            color: white;
-            padding: 10px 16px;
-            border-radius: 12px;
-            z-index: 100;
-            font-size: 16px;
-            font-weight: bold;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            color: white; padding: 10px 16px; border-radius: 12px; z-index: 100;
+            font-size: 16px; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
         }
-
-        #question-title .target {
-            display: block;
-            font-size: 14px;
-            margin-top: 5px;
-        }
+        #question-title .target { display: block; font-size: 14px; margin-top: 5px; }
 
         #tracking-status {
-            position: fixed;
-            top: env(safe-area-inset-top, 10px);
-            left: 50%;
-            transform: translateX(-50%);
-            margin-top: 70px;
-            background: rgba(0,0,0,0.8);
-            padding: 8px 16px;
-            border-radius: 20px;
-            z-index: 100;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            position: fixed; top: env(safe-area-inset-top, 10px); left: 50%; transform: translateX(-50%);
+            margin-top: 70px; background: rgba(0,0,0,0.8); padding: 8px 16px; border-radius: 20px;
+            z-index: 100; display: flex; align-items: center; gap: 8px;
         }
-
-        #tracking-status .dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: #666;
-            transition: all 0.3s;
-        }
-
-        #tracking-status .dot.active {
-            background: #4CAF50;
-            box-shadow: 0 0 12px #4CAF50;
-            animation: pulse 1s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.2); }
-        }
-
-        #tracking-status .text {
-            color: white;
-            font-size: 13px;
-        }
+        #tracking-status .dot { width: 10px; height: 10px; border-radius: 50%; background: #666; transition: all 0.3s; }
+        #tracking-status .dot.active { background: #4CAF50; box-shadow: 0 0 12px #4CAF50; animation: pulse 1s infinite; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
+        #tracking-status .text { color: white; font-size: 13px; }
 
         #detection-progress {
-            position: fixed;
-            bottom: 190px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 70%;
-            max-width: 280px;
-            height: 12px;
-            background: rgba(255,255,255,0.3);
-            border-radius: 6px;
-            overflow: hidden;
-            z-index: 100;
-            display: none;
+            position: fixed; bottom: 190px; left: 50%; transform: translateX(-50%);
+            width: 70%; max-width: 280px; height: 12px; background: rgba(255,255,255,0.3);
+            border-radius: 6px; overflow: hidden; z-index: 100; display: none;
             box-shadow: 0 2px 10px rgba(0,0,0,0.4);
         }
-
-        #detection-progress .bar {
-            height: 100%;
-            background: linear-gradient(90deg, #4CAF50, #8BC34A, #CDDC39);
-            width: 0%;
-            transition: width 0.05s linear;
-            border-radius: 6px;
-        }
+        #detection-progress .bar { height: 100%; background: linear-gradient(90deg, #4CAF50, #8BC34A, #CDDC39); width: 0%; transition: width 0.05s linear; border-radius: 6px; }
 
         #ui-overlay {
-            position: fixed;
-            bottom: env(safe-area-inset-bottom, 15px);
-            left: 50%;
-            transform: translateX(-50%);
-            margin-bottom: 15px;
-            z-index: 100;
-            text-align: center;
+            position: fixed; bottom: env(safe-area-inset-bottom, 15px); left: 50%; transform: translateX(-50%);
+            margin-bottom: 15px; z-index: 100; text-align: center;
             background: linear-gradient(135deg, rgba(0,0,0,0.95), rgba(20,20,20,0.98));
-            padding: 18px 28px;
-            border-radius: 20px;
-            display: none;
-            box-shadow: 0 8px 35px rgba(0,0,0,0.6);
-            min-width: 260px;
-            max-width: 90%;
+            padding: 18px 28px; border-radius: 20px; display: none;
+            box-shadow: 0 8px 35px rgba(0,0,0,0.6); min-width: 260px; max-width: 90%;
         }
-
-        #food-title {
-            color: white;
-            font-size: 22px;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        #food-category {
-            color: #aaa;
-            font-size: 14px;
-            margin-bottom: 12px;
-        }
-
+        #food-title { color: white; font-size: 22px; font-weight: bold; margin-bottom: 5px; }
+        #food-category { color: #aaa; font-size: 14px; margin-bottom: 12px; }
         #confirm-button {
-            padding: 12px 35px;
-            background: linear-gradient(135deg, #4CAF50, #45a049);
-            color: white;
-            border: none;
-            border-radius: 30px;
-            cursor: pointer;
-            font-size: 17px;
-            font-weight: bold;
-            box-shadow: 0 4px 20px rgba(76, 175, 80, 0.4);
-            width: 100%;
+            padding: 12px 35px; background: linear-gradient(135deg, #4CAF50, #45a049); color: white;
+            border: none; border-radius: 30px; cursor: pointer; font-size: 17px; font-weight: bold;
+            box-shadow: 0 4px 20px rgba(76, 175, 80, 0.4); width: 100%;
         }
-
         #confirm-button:active { transform: scale(0.95); }
 
         #notification {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.95);
-            color: white;
-            padding: 25px 40px;
-            border-radius: 20px;
-            z-index: 200;
-            font-size: 20px;
-            display: none;
-            text-align: center;
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.95); color: white; padding: 25px 40px; border-radius: 20px;
+            z-index: 200; font-size: 20px; display: none; text-align: center;
             box-shadow: 0 15px 50px rgba(0,0,0,0.7);
         }
 
         #start-screen {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: linear-gradient(135deg, #667eea, #764ba2);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 500;
-            padding: 25px;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 500; padding: 25px;
         }
-
-        #start-screen h1 {
-            color: white;
-            font-size: 26px;
-            margin-bottom: 12px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-            text-align: center;
-        }
-
-        #start-screen .subtitle {
-            color: rgba(255,255,255,0.8);
-            font-size: 14px;
-            margin-bottom: 20px;
-        }
-
-        #start-screen .instructions {
-            background: rgba(255,255,255,0.15);
-            padding: 22px;
-            border-radius: 18px;
-            color: white;
-            max-width: 320px;
-            margin-bottom: 25px;
-            line-height: 1.8;
-        }
-
+        #start-screen h1 { color: white; font-size: 26px; margin-bottom: 12px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); text-align: center; }
+        #start-screen .subtitle { color: rgba(255,255,255,0.8); font-size: 14px; margin-bottom: 20px; }
+        #start-screen .instructions { background: rgba(255,255,255,0.15); padding: 22px; border-radius: 18px; color: white; max-width: 320px; margin-bottom: 25px; line-height: 1.8; }
         #start-screen .instructions h3 { margin-bottom: 12px; font-size: 17px; }
         #start-screen .instructions p { margin: 8px 0; font-size: 14px; display: flex; align-items: flex-start; gap: 10px; }
         #start-screen .instructions .step-num { background: rgba(255,255,255,0.25); width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; }
-
-        #start-button {
-            padding: 16px 60px;
-            font-size: 20px;
-            background: white;
-            color: #764ba2;
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            font-weight: bold;
-            box-shadow: 0 10px 35px rgba(0,0,0,0.3);
-        }
-
+        #start-button { padding: 16px 60px; font-size: 20px; background: white; color: #764ba2; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; box-shadow: 0 10px 35px rgba(0,0,0,0.3); }
         #start-button:active { transform: scale(0.95); }
-
-        #marker-link {
-            margin-top: 18px;
-            color: rgba(255,255,255,0.9);
-            font-size: 14px;
-            text-decoration: underline;
-            cursor: pointer;
-        }
+        #marker-link { margin-top: 18px; color: rgba(255,255,255,0.9); font-size: 14px; text-decoration: underline; cursor: pointer; }
 
         #result-screen {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: linear-gradient(135deg, #11998e, #38ef7d);
-            display: none;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 500;
-            padding: 25px;
+            display: none; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 500; padding: 25px;
         }
-
         #result-screen h1 { color: white; font-size: 30px; margin-bottom: 20px; }
         #result-screen .score-box { background: rgba(255,255,255,0.2); padding: 35px 55px; border-radius: 25px; text-align: center; margin-bottom: 20px; }
         #result-screen .final-score { color: #FFD700; font-size: 72px; font-weight: bold; line-height: 1; }
@@ -294,47 +113,40 @@
         #result-screen .stats { color: rgba(255,255,255,0.8); font-size: 14px; margin-top: 8px; }
         #restart-button { padding: 16px 50px; font-size: 18px; background: white; color: #11998e; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; }
 
-        .marker-modal {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95);
-            z-index: 600;
-            display: none;
-            flex-direction: column;
-            padding: 20px;
-            overflow-y: auto;
-        }
-
-        .marker-modal.show { display: flex; }
-        .marker-modal h2 { color: white; text-align: center; margin: 40px 0 15px 0; font-size: 20px; }
-        .marker-modal .close-btn { position: fixed; top: 15px; right: 15px; background: rgba(255,255,255,0.2); border: none; color: white; width: 40px; height: 40px; border-radius: 50%; font-size: 24px; cursor: pointer; z-index: 610; }
-        .marker-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; max-width: 380px; margin: 0 auto; padding-bottom: 30px; }
-        .marker-item { background: white; border-radius: 12px; padding: 12px; text-align: center; }
-        .marker-item canvas { width: 100%; max-width: 100px; height: auto; }
-        .marker-item .name { font-weight: bold; margin-top: 6px; font-size: 13px; }
-        .marker-item .category { font-size: 11px; color: #666; }
-
         #camera-prompt {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: linear-gradient(135deg, #2c3e50, #4ca1af);
-            display: none;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 550;
-            padding: 30px;
-            text-align: center;
+            display: none; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 550; padding: 30px; text-align: center;
         }
         #camera-prompt .icon { font-size: 55px; margin-bottom: 18px; }
         #camera-prompt h2 { color: white; margin-bottom: 12px; font-size: 22px; }
         #camera-prompt p { color: rgba(255,255,255,0.8); margin-bottom: 22px; line-height: 1.6; font-size: 15px; }
         #camera-prompt button { padding: 14px 35px; font-size: 17px; background: white; color: #2c3e50; border: none; border-radius: 30px; cursor: pointer; font-weight: bold; }
+
+        #loading-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: none; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 600; padding: 30px; text-align: center;
+        }
+        #loading-screen .spinner {
+            width: 50px; height: 50px; border: 4px solid rgba(255,255,255,0.3);
+            border-top-color: white; border-radius: 50%;
+            animation: spin 1s linear infinite; margin-bottom: 20px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        #loading-screen p { color: white; font-size: 18px; }
+        #loading-progress { color: rgba(255,255,255,0.7); font-size: 14px; margin-top: 10px; }
     </style>
 </head>
 <body>
+
+<div id="loading-screen">
+    <div class="spinner"></div>
+    <p>載入 3D 模型中...</p>
+    <div id="loading-progress">0 / 6</div>
+</div>
 
 <div id="start-screen">
     <h1>🍽️ AR 六大類食物遊戲</h1>
@@ -347,7 +159,7 @@
         <p><span class="step-num">4</span> 共 6 題，來挑戰滿分吧！</p>
     </div>
     <button id="start-button">🎮 開始遊戲</button>
-    <p id="marker-link" onclick="showMarkerModal()">📄 查看/列印圖卡</p>
+    <a id="marker-link" href="marker-generator.html">📄 查看/列印圖卡</a>
 </div>
 
 <div id="camera-prompt">
@@ -368,14 +180,6 @@
     <button id="restart-button">🔄 再玩一次</button>
 </div>
 
-<div class="marker-modal" id="marker-modal">
-    <button class="close-btn" onclick="hideMarkerModal()">×</button>
-    <h2>📄 遊戲圖卡</h2>
-    <p style="color: rgba(255,255,255,0.8); text-align: center; font-size: 13px;">列印以下圖卡，每張至少 6cm x 6cm</p>
-    <div class="marker-grid" id="marker-grid"></div>
-    <p style="color: rgba(255,255,255,0.6); text-align: center; margin-top: 15px; font-size: 12px;">長按圖片可以儲存</p>
-</div>
-
 <div id="question-background"></div>
 <div id="score-display">分數: 0</div>
 <div id="question-title">第 1 題<span class="target">找：蔬菜類</span></div>
@@ -383,25 +187,89 @@
 <div id="detection-progress"><div class="bar" id="detection-bar"></div></div>
 <div id="notification"></div>
 
-<a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3;" vr-mode-ui="enabled: false" renderer="logarithmicDepthBuffer: true; precision: medium;">
-    <a-marker type="barcode" value="0" id="marker-0" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
-        <a-entity><a-box position="0 0.4 0" color="#FF6B6B" scale="0.6 0.6 0.6" opacity="0.9" animation="property: rotation; to: 0 360 0; dur: 3000; easing: linear; loop: true"></a-box><a-text value="豆魚蛋肉類" position="0 1 0" align="center" color="#FF6B6B" scale="1.2 1.2 1.2" side="double"></a-text></a-entity>
+<!-- A-Frame AR 場景 - 使用 Pattern Marker 和 3D 模型 -->
+<a-scene 
+    embedded 
+    arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3;"
+    vr-mode-ui="enabled: false"
+    renderer="logarithmicDepthBuffer: true; precision: medium;">
+
+    <!-- 預載 3D 模型 -->
+    <a-assets timeout="30000">
+        <a-asset-item id="model-1" src="models/food_answer1.glb"></a-asset-item>
+        <a-asset-item id="model-2" src="models/food_answer2.glb"></a-asset-item>
+        <a-asset-item id="model-3" src="models/food_answer3.glb"></a-asset-item>
+        <a-asset-item id="model-4" src="models/food_answer4.glb"></a-asset-item>
+        <a-asset-item id="model-5" src="models/food_answer5.glb"></a-asset-item>
+        <a-asset-item id="model-6" src="models/food_answer6.glb"></a-asset-item>
+    </a-assets>
+
+    <!-- Marker 1: 蔬菜類 (花椰菜) -->
+    <a-marker type="pattern" url="markers/marker_food1.patt" id="marker-1" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
+        <a-entity
+            gltf-model="#model-1"
+            scale="0.5 0.5 0.5"
+            position="0 0 0"
+            animation="property: rotation; to: 0 360 0; dur: 4000; easing: linear; loop: true">
+        </a-entity>
+        <a-text value="蔬菜類" position="0 0.8 0" align="center" color="#4CAF50" scale="1.2 1.2 1.2" side="double"></a-text>
     </a-marker>
-    <a-marker type="barcode" value="1" id="marker-1" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
-        <a-entity><a-cone position="0 0.4 0" color="#4CAF50" radius-bottom="0.4" height="0.7" opacity="0.9" animation="property: rotation; to: 0 360 0; dur: 3000; easing: linear; loop: true"></a-cone><a-text value="蔬菜類" position="0 1 0" align="center" color="#4CAF50" scale="1.2 1.2 1.2" side="double"></a-text></a-entity>
+    
+    <!-- Marker 2: 堅果類 -->
+    <a-marker type="pattern" url="markers/marker_food2.patt" id="marker-2" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
+        <a-entity
+            gltf-model="#model-2"
+            scale="0.5 0.5 0.5"
+            position="0 0 0"
+            animation="property: rotation; to: 0 360 0; dur: 4000; easing: linear; loop: true">
+        </a-entity>
+        <a-text value="堅果類" position="0 0.8 0" align="center" color="#FDD835" scale="1.2 1.2 1.2" side="double"></a-text>
     </a-marker>
-    <a-marker type="barcode" value="2" id="marker-2" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
-        <a-entity><a-cylinder position="0 0.3 0" color="#FFB74D" radius="0.4" height="0.5" opacity="0.9" animation="property: rotation; to: 0 360 0; dur: 3000; easing: linear; loop: true"></a-cylinder><a-text value="全穀雜糧類" position="0 0.9 0" align="center" color="#FFB74D" scale="1.2 1.2 1.2" side="double"></a-text></a-entity>
+    
+    <!-- Marker 3: 豆魚蛋肉類 (牛排) -->
+    <a-marker type="pattern" url="markers/marker_food3.patt" id="marker-3" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
+        <a-entity
+            gltf-model="#model-3"
+            scale="0.5 0.5 0.5"
+            position="0 0 0"
+            animation="property: rotation; to: 0 360 0; dur: 4000; easing: linear; loop: true">
+        </a-entity>
+        <a-text value="豆魚蛋肉類" position="0 0.8 0" align="center" color="#FF6B6B" scale="1 1 1" side="double"></a-text>
     </a-marker>
-    <a-marker type="barcode" value="3" id="marker-3" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
-        <a-entity><a-sphere position="0 0.4 0" color="#E040FB" radius="0.4" opacity="0.9" animation="property: rotation; to: 0 360 0; dur: 3000; easing: linear; loop: true"></a-sphere><a-text value="水果類" position="0 1 0" align="center" color="#E040FB" scale="1.2 1.2 1.2" side="double"></a-text></a-entity>
+    
+    <!-- Marker 4: 水果類 -->
+    <a-marker type="pattern" url="markers/marker_food4.patt" id="marker-4" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
+        <a-entity
+            gltf-model="#model-4"
+            scale="0.5 0.5 0.5"
+            position="0 0 0"
+            animation="property: rotation; to: 0 360 0; dur: 4000; easing: linear; loop: true">
+        </a-entity>
+        <a-text value="水果類" position="0 0.8 0" align="center" color="#E040FB" scale="1.2 1.2 1.2" side="double"></a-text>
     </a-marker>
-    <a-marker type="barcode" value="4" id="marker-4" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
-        <a-entity><a-box position="0 0.4 0" color="#29B6F6" scale="0.35 0.7 0.35" opacity="0.9" animation="property: rotation; to: 0 360 0; dur: 3000; easing: linear; loop: true"></a-box><a-text value="乳品類" position="0 1 0" align="center" color="#29B6F6" scale="1.2 1.2 1.2" side="double"></a-text></a-entity>
+    
+    <!-- Marker 5: 全穀雜糧類 (白飯) -->
+    <a-marker type="pattern" url="markers/marker_food5.patt" id="marker-5" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
+        <a-entity
+            gltf-model="#model-5"
+            scale="0.5 0.5 0.5"
+            position="0 0 0"
+            animation="property: rotation; to: 0 360 0; dur: 4000; easing: linear; loop: true">
+        </a-entity>
+        <a-text value="全穀雜糧類" position="0 0.8 0" align="center" color="#FFB74D" scale="1 1 1" side="double"></a-text>
     </a-marker>
-    <a-marker type="barcode" value="5" id="marker-5" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
-        <a-entity><a-dodecahedron position="0 0.4 0" color="#FDD835" radius="0.35" opacity="0.9" animation="property: rotation; to: 0 360 0; dur: 3000; easing: linear; loop: true"></a-dodecahedron><a-text value="堅果類" position="0 1 0" align="center" color="#FDD835" scale="1.2 1.2 1.2" side="double"></a-text></a-entity>
+    
+    <!-- Marker 6: 乳品類 (牛奶) -->
+    <a-marker type="pattern" url="markers/marker_food6.patt" id="marker-6" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
+        <a-entity
+            gltf-model="#model-6"
+            scale="0.5 0.5 0.5"
+            position="0 0 0"
+            animation="property: rotation; to: 0 360 0; dur: 4000; easing: linear; loop: true">
+        </a-entity>
+        <a-text value="乳品類" position="0 0.8 0" align="center" color="#29B6F6" scale="1.2 1.2 1.2" side="double"></a-text>
     </a-marker>
+
     <a-entity camera></a-entity>
 </a-scene>
 
@@ -412,32 +280,31 @@
 </div>
 
 <script>
+// 題目資料 - 對應題目圖片和正確答案
 const questionData = [
     { image: 'imgs/food_question1_0.png', missingCategory: '蔬菜類', correctMarkerId: 1, color: '#4CAF50' },
-    { image: 'imgs/food_question2_0.png', missingCategory: '堅果類', correctMarkerId: 5, color: '#FDD835' },
-    { image: 'imgs/food_question3_0.png', missingCategory: '豆魚蛋肉類', correctMarkerId: 0, color: '#FF6B6B' },
-    { image: 'imgs/food_question4_0.png', missingCategory: '水果類', correctMarkerId: 3, color: '#E040FB' },
-    { image: 'imgs/food_question5_0.png', missingCategory: '全穀雜糧類', correctMarkerId: 2, color: '#FFB74D' },
-    { image: 'imgs/food_question6_0.png', missingCategory: '乳品類', correctMarkerId: 4, color: '#29B6F6' }
+    { image: 'imgs/food_question2_0.png', missingCategory: '堅果類', correctMarkerId: 2, color: '#FDD835' },
+    { image: 'imgs/food_question3_0.png', missingCategory: '豆魚蛋肉類', correctMarkerId: 3, color: '#FF6B6B' },
+    { image: 'imgs/food_question4_0.png', missingCategory: '水果類', correctMarkerId: 4, color: '#E040FB' },
+    { image: 'imgs/food_question5_0.png', missingCategory: '全穀雜糧類', correctMarkerId: 5, color: '#FFB74D' },
+    { image: 'imgs/food_question6_0.png', missingCategory: '乳品類', correctMarkerId: 6, color: '#29B6F6' }
 ];
 
+// Marker 資料
 const markerData = [
-    { id: 0, title: '雞蛋/肉類', category: '豆魚蛋肉類', color: '#FF6B6B' },
-    { id: 1, title: '高麗菜', category: '蔬菜類', color: '#4CAF50' },
-    { id: 2, title: '白飯', category: '全穀雜糧類', color: '#FFB74D' },
-    { id: 3, title: '柳丁', category: '水果類', color: '#E040FB' },
-    { id: 4, title: '牛奶', category: '乳品類', color: '#29B6F6' },
-    { id: 5, title: '花生/堅果', category: '堅果類', color: '#FDD835' }
+    { id: 1, title: '花椰菜', category: '蔬菜類', color: '#4CAF50' },
+    { id: 2, title: '堅果', category: '堅果類', color: '#FDD835' },
+    { id: 3, title: '牛排', category: '豆魚蛋肉類', color: '#FF6B6B' },
+    { id: 4, title: '水果', category: '水果類', color: '#E040FB' },
+    { id: 5, title: '白飯', category: '全穀雜糧類', color: '#FFB74D' },
+    { id: 6, title: '牛奶', category: '乳品類', color: '#29B6F6' }
 ];
 
-const barcodePatterns = {
-    0: [[1,0,1],[0,0,0],[1,0,1]], 1: [[0,1,0],[0,0,1],[1,0,0]], 2: [[1,1,0],[0,0,0],[0,1,1]],
-    3: [[0,0,1],[1,0,1],[1,0,0]], 4: [[1,0,0],[0,0,0],[0,0,1]], 5: [[0,1,1],[1,0,0],[1,1,0]]
-};
-
-let gameState = { isPlaying: false, currentQuestion: 0, totalQuestions: 6, score: 0, questions: [], currentAnswer: null, scannedMarkerId: null, isDetecting: false, detectionStartTime: null, autoConfirmDelay: 2000 };
+let gameState = { isPlaying: false, currentQuestion: 0, totalQuestions: 6, score: 0, questions: [], currentAnswer: null, scannedMarkerId: null, isDetecting: false, detectionStartTime: null, autoConfirmDelay: 2000, modelsLoaded: false };
 
 const elements = {
+    loadingScreen: document.getElementById('loading-screen'),
+    loadingProgress: document.getElementById('loading-progress'),
     startScreen: document.getElementById('start-screen'), startButton: document.getElementById('start-button'),
     cameraPrompt: document.getElementById('camera-prompt'), resultScreen: document.getElementById('result-screen'),
     finalScore: document.getElementById('final-score'), accuracy: document.getElementById('accuracy'),
@@ -447,37 +314,11 @@ const elements = {
     trackingText: document.getElementById('tracking-text'), detectionProgress: document.getElementById('detection-progress'),
     detectionBar: document.getElementById('detection-bar'), uiOverlay: document.getElementById('ui-overlay'),
     foodTitle: document.getElementById('food-title'), foodCategory: document.getElementById('food-category'),
-    confirmButton: document.getElementById('confirm-button'), notification: document.getElementById('notification'),
-    markerModal: document.getElementById('marker-modal'), markerGrid: document.getElementById('marker-grid')
+    confirmButton: document.getElementById('confirm-button'), notification: document.getElementById('notification')
 };
 
 function shuffleArray(arr) { const a = [...arr]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 function showNotification(msg, dur = 2000) { elements.notification.textContent = msg; elements.notification.style.display = 'block'; setTimeout(() => elements.notification.style.display = 'none', dur); }
-
-function drawBarcodeMarker(canvas, id, size = 120) {
-    const ctx = canvas.getContext('2d'), cell = size / 5;
-    canvas.width = canvas.height = size;
-    ctx.fillStyle = 'white'; ctx.fillRect(0, 0, size, size);
-    ctx.fillStyle = 'black';
-    ctx.fillRect(0, 0, size, cell); ctx.fillRect(0, size - cell, size, cell);
-    ctx.fillRect(0, 0, cell, size); ctx.fillRect(size - cell, 0, cell, size);
-    const p = barcodePatterns[id];
-    if (p) for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) { ctx.fillStyle = p[r][c] ? 'black' : 'white'; ctx.fillRect((c+1)*cell, (r+1)*cell, cell, cell); }
-}
-
-function generateMarkerGrid() {
-    elements.markerGrid.innerHTML = '';
-    markerData.forEach(m => {
-        const item = document.createElement('div'); item.className = 'marker-item';
-        const canvas = document.createElement('canvas'); drawBarcodeMarker(canvas, m.id, 120);
-        item.innerHTML = `<div class="name">${m.title}</div><div class="category" style="color:${m.color}">${m.category}</div>`;
-        item.insertBefore(canvas, item.firstChild);
-        elements.markerGrid.appendChild(item);
-    });
-}
-
-function showMarkerModal() { generateMarkerGrid(); elements.markerModal.classList.add('show'); }
-function hideMarkerModal() { elements.markerModal.classList.remove('show'); }
 
 async function checkCameraPermission() { try { return (await navigator.permissions.query({ name: 'camera' })).state === 'granted'; } catch { return false; } }
 async function requestCameraPermission() {
@@ -555,7 +396,67 @@ document.querySelectorAll('a-marker').forEach(marker => {
     marker.addEventListener('markerLost', e => { console.log('Lost:', e.target.id); if (gameState.scannedMarkerId === parseInt(e.target.id.split('-')[1])) stopDetection(); });
 });
 
-window.addEventListener('load', () => { console.log('AR遊戲已載入'); generateMarkerGrid(); questionData.forEach(q => { const img = new Image(); img.src = q.image; }); });
+// 監聽 3D 模型載入進度
+let loadedModels = 0;
+const totalModels = 6;
+
+function updateLoadingProgress() {
+    loadedModels++;
+    elements.loadingProgress.textContent = `${loadedModels} / ${totalModels}`;
+    if (loadedModels >= totalModels) {
+        gameState.modelsLoaded = true;
+        setTimeout(() => {
+            elements.loadingScreen.style.display = 'none';
+        }, 500);
+    }
+}
+
+window.addEventListener('load', () => {
+    console.log('AR遊戲已載入 - 3D 模型版本');
+    
+    // 預載題目圖片
+    questionData.forEach(q => { const img = new Image(); img.src = q.image; });
+    
+    // 顯示載入畫面
+    elements.loadingScreen.style.display = 'flex';
+    
+    // 監聽 A-Frame 資源載入
+    const scene = document.querySelector('a-scene');
+    if (scene.hasLoaded) {
+        // 場景已載入
+        for (let i = 1; i <= 6; i++) {
+            const asset = document.querySelector(`#model-${i}`);
+            if (asset) {
+                if (asset.hasLoaded) {
+                    updateLoadingProgress();
+                } else {
+                    asset.addEventListener('loaded', updateLoadingProgress);
+                }
+            }
+        }
+    } else {
+        scene.addEventListener('loaded', () => {
+            for (let i = 1; i <= 6; i++) {
+                const asset = document.querySelector(`#model-${i}`);
+                if (asset) {
+                    if (asset.hasLoaded) {
+                        updateLoadingProgress();
+                    } else {
+                        asset.addEventListener('loaded', updateLoadingProgress);
+                    }
+                }
+            }
+        });
+    }
+    
+    // 設定超時，避免卡在載入畫面
+    setTimeout(() => {
+        if (!gameState.modelsLoaded) {
+            console.log('載入超時，強制進入遊戲');
+            elements.loadingScreen.style.display = 'none';
+        }
+    }, 15000);
+});
 </script>
 </body>
 </html>
