@@ -108,7 +108,7 @@
         }
 
         #question-title .target {
-            display: block;
+            display: none;
             margin-top: 5px;
             font-size: 14px;
         }
@@ -267,21 +267,7 @@
             font-weight: bold;
         }
 
-        /* Debug info */
-        #debug-info {
-            position: fixed;
-            bottom: 10px;
-            left: 10px;
-            background: rgba(0,0,0,0.8);
-            color: #0f0;
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: 11px;
-            z-index: 1000;
-            font-family: monospace;
-            max-width: 200px;
-            display: block;
-        }
+
     </style>
 </head>
 <body>
@@ -322,7 +308,7 @@
 <div id="score-display">分數: 0</div>
 <div id="question-title">第1題<span class="target"></span></div>
 <div id="notification">請找下一個食物！</div>
-<div id="debug-info">等待開始...</div>
+
 
 <!-- AR 場景 - 使用與原本相同的設定 -->
 <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;">
@@ -428,17 +414,15 @@ const scoreDisplay = document.getElementById('score-display');
 const confirmButton = document.getElementById('confirm-button');
 const questionTitle = document.getElementById('question-title');
 const notification = document.getElementById('notification');
-const debugInfo = document.getElementById('debug-info');
 const startScreen = document.getElementById('start-screen');
 const startButton = document.getElementById('start-button');
 const loadingOverlay = document.getElementById('loading-overlay');
 const resultScreen = document.getElementById('result-screen');
 const restartButton = document.getElementById('restart-button');
 
-// 除錯日誌
+// 日誌（只輸出到 console）
 function log(msg) {
     console.log('[AR]', msg);
-    debugInfo.innerHTML = msg + '<br>' + debugInfo.innerHTML.split('<br>').slice(0, 5).join('<br>');
 }
 
 // 洗牌函數
