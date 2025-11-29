@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AR 六大類食物圖卡</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Microsoft JhengHei', sans-serif;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container { max-width: 900px; margin: 0 auto; }
+        
+        h1 { color: white; text-align: center; margin-bottom: 10px; font-size: 26px; }
+        .subtitle { color: rgba(255,255,255,0.8); text-align: center; margin-bottom: 25px; font-size: 14px; }
+        
+        .info-box {
+            background: rgba(255,255,255,0.15);
+            padding: 18px;
+            border-radius: 15px;
+            color: white;
+            margin-bottom: 25px;
+            font-size: 14px;
+            line-height: 1.7;
+        }
+        .info-box h3 { margin-bottom: 10px; font-size: 16px; }
+        
+        .markers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 18px;
+            margin-bottom: 25px;
+        }
+        
+        .marker-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .marker-card img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        
+        .marker-card .card-footer {
+            padding: 15px;
+            text-align: center;
+            background: #f8f8f8;
+        }
+        
+        .marker-card .name {
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+        
+        .marker-card .category {
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        
+        .download-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            transition: transform 0.2s;
+        }
+        
+        .download-btn:hover { transform: scale(1.05); }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+        }
+        
+        .action-btn {
+            padding: 15px 35px;
+            font-size: 16px;
+            background: white;
+            color: #764ba2;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            text-decoration: none;
+            transition: transform 0.2s;
+        }
+        
+        .action-btn:hover { transform: scale(1.03); }
+        .action-btn.print { background: #4CAF50; color: white; }
+        .action-btn.back { background: #667eea; color: white; }
+        
+        .print-instructions {
+            background: rgba(255,255,255,0.1);
+            border: 2px dashed rgba(255,255,255,0.3);
+            padding: 20px;
+            border-radius: 15px;
+            color: white;
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .print-instructions h3 { margin-bottom: 15px; }
+        .print-instructions ol { text-align: left; padding-left: 25px; line-height: 2; }
+        
+        @media print {
+            body { background: white !important; padding: 10mm; }
+            .container > *:not(.print-area) { display: none !important; }
+            .print-area { display: block !important; }
+            .markers-grid { grid-template-columns: repeat(2, 1fr); gap: 10mm; }
+            .marker-card { box-shadow: none; border: 1px solid #ccc; page-break-inside: avoid; }
+            .marker-card .card-footer { padding: 10px; }
+            .download-btn { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🍽️ AR 六大類食物圖卡</h1>
+        <p class="subtitle">大仁科技大學 社會工作系</p>
+        
+        <div class="info-box">
+            <h3>📋 使用說明</h3>
+            <p>• 這些是 AR 遊戲專用的辨識圖卡</p>
+            <p>• 每張圖卡包含黑色邊框和食物圖片</p>
+            <p>• 列印時請確保圖卡完整、清晰</p>
+            <p>• 建議尺寸：每張至少 8cm x 8cm</p>
+        </div>
+        
+        <div class="action-buttons">
+            <button class="action-btn print" onclick="window.print()">🖨️ 列印全部圖卡</button>
+            <a class="action-btn back" href="index.html">🎮 返回遊戲</a>
+        </div>
+        
+        <div class="markers-grid print-area">
+            <!-- 蔬菜類 -->
+            <div class="marker-card">
+                <img src="imgs/LINE_NOTE_251126_1.jpg" alt="蔬菜類 - 花椰菜">
+                <div class="card-footer">
+                    <div class="name">花椰菜</div>
+                    <div class="category" style="color: #4CAF50;">蔬菜類</div>
+                    <a class="download-btn" href="imgs/LINE_NOTE_251126_1.jpg" download="圖卡_蔬菜類_花椰菜.jpg">下載此圖卡</a>
+                </div>
+            </div>
+            
+            <!-- 堅果類 -->
+            <div class="marker-card">
+                <img src="imgs/LINE_NOTE_251126_2.jpg" alt="堅果類">
+                <div class="card-footer">
+                    <div class="name">堅果</div>
+                    <div class="category" style="color: #FDD835;">堅果類</div>
+                    <a class="download-btn" href="imgs/LINE_NOTE_251126_2.jpg" download="圖卡_堅果類_堅果.jpg">下載此圖卡</a>
+                </div>
+            </div>
+            
+            <!-- 豆魚蛋肉類 -->
+            <div class="marker-card">
+                <img src="imgs/LINE_NOTE_251126_3.jpg" alt="豆魚蛋肉類 - 牛排">
+                <div class="card-footer">
+                    <div class="name">牛排</div>
+                    <div class="category" style="color: #FF6B6B;">豆魚蛋肉類</div>
+                    <a class="download-btn" href="imgs/LINE_NOTE_251126_3.jpg" download="圖卡_豆魚蛋肉類_牛排.jpg">下載此圖卡</a>
+                </div>
+            </div>
+            
+            <!-- 水果類 -->
+            <div class="marker-card">
+                <img src="imgs/LINE_NOTE_251126_4.jpg" alt="水果類">
+                <div class="card-footer">
+                    <div class="name">水果</div>
+                    <div class="category" style="color: #E040FB;">水果類</div>
+                    <a class="download-btn" href="imgs/LINE_NOTE_251126_4.jpg" download="圖卡_水果類_水果.jpg">下載此圖卡</a>
+                </div>
+            </div>
+            
+            <!-- 全穀雜糧類 -->
+            <div class="marker-card">
+                <img src="imgs/LINE_NOTE_251126_5.jpg" alt="全穀雜糧類 - 白飯">
+                <div class="card-footer">
+                    <div class="name">白飯</div>
+                    <div class="category" style="color: #FFB74D;">全穀雜糧類</div>
+                    <a class="download-btn" href="imgs/LINE_NOTE_251126_5.jpg" download="圖卡_全穀雜糧類_白飯.jpg">下載此圖卡</a>
+                </div>
+            </div>
+            
+            <!-- 乳品類 -->
+            <div class="marker-card">
+                <img src="imgs/LINE_NOTE_251126_6.jpg" alt="乳品類 - 牛奶">
+                <div class="card-footer">
+                    <div class="name">牛奶</div>
+                    <div class="category" style="color: #29B6F6;">乳品類</div>
+                    <a class="download-btn" href="imgs/LINE_NOTE_251126_6.jpg" download="圖卡_乳品類_牛奶.jpg">下載此圖卡</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="print-instructions">
+            <h3>🖨️ 列印建議</h3>
+            <ol>
+                <li>使用 A4 白色紙張列印</li>
+                <li>選擇「符合頁面」或「實際大小」</li>
+                <li>每張圖卡至少 8cm x 8cm</li>
+                <li>建議護貝後使用，更耐用</li>
+                <li>避免反光材質或皺褶</li>
+            </ol>
+        </div>
+    </div>
+</body>
+</html>
