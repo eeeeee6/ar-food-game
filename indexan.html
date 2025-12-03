@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>六大類食物遊戲</title>
+    
+    <!-- 使用與原本相同的版本 -->
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        #background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-color: rgba(240, 240, 240, 0);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        #arjs-video {
+            position: fixed !important;
+            top: 0;
+            left: 0;
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+            z-index: 0;
+        }
+
+        /* 修正 Android 相機放大問題 */
+        video {
+            object-fit: cover !important;
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        .a-canvas {
+            z-index: 2 !important;
+        }
+
+        #ui-overlay {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 3;
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 15px 25px;
+            border-radius: 15px;
+            display: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        #food-icon {
+            font-size: 40px;
+            margin-bottom: 5px;
+        }
+
+        #food-title {
+            color: #333;
+            font-size: 18px;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+
+        #food-category {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        #confirm-button {
+            padding: 12px 25px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+        }
+
+        #confirm-button:active {
+            background-color: #388E3C;
+        }
+
+        #score-display {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #FFD700;
+            color: #333;
+            padding: 10px 20px;
+            border-radius: 25px;
+            z-index: 4;
+            font-size: 18px;
+            font-weight: bold;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        #question-title {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 10px;
+            z-index: 4;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        #question-title .progress {
+            width: 100%;
+            height: 4px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 2px;
+            margin-top: 8px;
+        }
+
+        #question-title .progress-fill {
+            height: 100%;
+            background: #4CAF50;
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        /* 任務卡片 */
+        #mission-card {
+            position: fixed;
+            top: 80px;
+            left: 20px;
+            background: white;
+            padding: 12px 20px;
+            border-radius: 15px;
+            z-index: 4;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        #mission-card .icon {
+            font-size: 35px;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f5f5f5;
+            border-radius: 12px;
+        }
+
+        #mission-card .text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        #mission-card .label {
+            font-size: 12px;
+            color: #666;
+        }
+
+        #mission-card .target {
+            font-size: 18px;
+            font-weight: bold;
+            color: #E91E63;
+        }
+
+        #notification {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.85);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 15px;
+            z-index: 5;
+            font-size: 20px;
+            display: none;
+        }
+
+        #loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        #loading-text {
+            color: white;
+            font-size: 20px;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        #start-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            padding: 25px;
+        }
+
+        #start-screen h1 {
+            color: white;
+            font-size: 26px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        #start-screen .subtitle {
+            color: rgba(255,255,255,0.8);
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+
+        #start-screen .instructions {
+            background: rgba(255,255,255,0.15);
+            padding: 20px;
+            border-radius: 15px;
+            color: white;
+            max-width: 300px;
+            margin-bottom: 25px;
+            line-height: 1.8;
+        }
+
+        #start-button {
+            padding: 15px 50px;
+            font-size: 20px;
+            background: white;
+            color: #764ba2;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        #marker-link {
+            margin-top: 15px;
+            color: rgba(255,255,255,0.9);
+            font-size: 14px;
+        }
+
+        #result-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            padding: 25px;
+        }
+
+        #result-screen h1 {
+            color: white;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        #result-screen .score-box {
+            background: rgba(255,255,255,0.2);
+            padding: 30px 50px;
+            border-radius: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        #result-screen .final-score {
+            color: #FFD700;
+            font-size: 60px;
+            font-weight: bold;
+        }
+
+        #result-screen .score-label {
+            color: white;
+            font-size: 20px;
+        }
+
+        #restart-button {
+            padding: 15px 40px;
+            font-size: 18px;
+            background: white;
+            color: #11998e;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* Debug info - 隱藏 */
+        #debug-info {
+            display: none !important;
+        }
+
+        /* 偵測狀態指示器 */
+        #detection-status {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            z-index: 3;
+            display: none;
+        }
+
+        #detection-status.detecting {
+            display: block;
+            background: #FF9800;
+        }
+
+        #detection-status.confirmed {
+            display: block;
+            background: #4CAF50;
+        }
+    </style>
+</head>
+<body>
+
+<!-- 開始畫面 -->
+<div id="start-screen">
+    <h1>🍽️ AR 六大類食物遊戲</h1>
+    <p class="subtitle">大仁科技大學 社會工作系</p>
+    <div class="instructions">
+        <strong>📋 遊戲說明</strong><br>
+        1. 畫面會顯示缺少某類食物的餐盤<br>
+        2. 找到對應的食物圖卡並掃描<br>
+        3. 穩定對準圖卡，出現確認按鈕<br>
+        4. 點擊確認按鈕得分，共 6 題！
+    </div>
+    <button id="start-button">🎮 開始遊戲</button>
+    <a id="marker-link" href="marker-generator.html">📄 查看/列印圖卡</a>
+</div>
+
+<!-- 載入畫面 -->
+<div id="loading-overlay" style="display: none;">
+    <div class="spinner"></div>
+    <div id="loading-text">模型載入中...</div>
+</div>
+
+<!-- 結果畫面 -->
+<div id="result-screen">
+    <h1>🎉 遊戲結束！</h1>
+    <div class="score-box">
+        <div class="final-score" id="final-score">0</div>
+        <div class="score-label">分</div>
+    </div>
+    <button id="restart-button">🔄 再玩一次</button>
+</div>
+
+<!-- 遊戲畫面 -->
+<div id="background"></div>
+<div id="score-display">⭐ 0 分</div>
+<div id="question-title">
+    第 <span id="q-num">1</span> 題
+    <div class="progress"><div class="progress-fill" id="progress-fill"></div></div>
+</div>
+
+<!-- 任務卡片 -->
+<div id="mission-card">
+    <div class="icon" id="mission-icon">🥬</div>
+    <div class="text">
+        <span class="label">🔍 請找出缺少的食物</span>
+        <span class="target" id="mission-target">蔬菜類</span>
+    </div>
+</div>
+
+<div id="notification">請找下一個食物！</div>
+<div id="debug-info">等待開始...</div>
+
+<!-- 偵測狀態指示器 -->
+<div id="detection-status">偵測中...</div>
+
+<!-- AR 場景 - 修正 Android 相機放大問題 -->
+<a-scene embedded arjs="
+    sourceType: webcam; 
+    debugUIEnabled: false; 
+    detectionMode: mono_and_matrix; 
+    matrixCodeType: 3x3;
+    videoTexture: false;
+    sourceWidth: 1280;
+    sourceHeight: 960;
+    displayWidth: 1280;
+    displayHeight: 960;
+">
+    <a-assets>
+        <a-asset-item id="food1-model" src="models/food_answer1.glb"></a-asset-item>
+        <a-asset-item id="food2-model" src="models/food_answer2.glb"></a-asset-item>
+        <a-asset-item id="food3-model" src="models/food_answer3.glb"></a-asset-item>
+        <a-asset-item id="food4-model" src="models/food_answer4.glb"></a-asset-item>
+        <a-asset-item id="food5-model" src="models/food_answer5.glb"></a-asset-item>
+        <a-asset-item id="food6-model" src="models/food_answer6.glb"></a-asset-item>
+    </a-assets>
+
+    <!-- Marker 設定 - 增加 smooth 和 smoothCount 降低誤判 -->
+    <a-marker id="marker1" type="pattern" url="markers/marker_food1.patt" smooth="true" smoothCount="5" smoothTolerance="0.01" smoothThreshold="2">
+        <a-entity gltf-model="#food1-model" scale="0.1 0.1 0.1" rotation="-90 0 0"></a-entity>
+    </a-marker>
+    <a-marker id="marker2" type="pattern" url="markers/marker_food2.patt" smooth="true" smoothCount="5" smoothTolerance="0.01" smoothThreshold="2">
+        <a-entity gltf-model="#food2-model" scale="0.1 0.1 0.1" rotation="-90 0 0"></a-entity>
+    </a-marker>
+    <a-marker id="marker3" type="pattern" url="markers/marker_food3.patt" smooth="true" smoothCount="5" smoothTolerance="0.01" smoothThreshold="2">
+        <a-entity gltf-model="#food3-model" scale="0.1 0.1 0.1" rotation="-90 0 0"></a-entity>
+    </a-marker>
+    <a-marker id="marker4" type="pattern" url="markers/marker_food4.patt" smooth="true" smoothCount="5" smoothTolerance="0.01" smoothThreshold="2">
+        <a-entity gltf-model="#food4-model" scale="0.1 0.1 0.1" rotation="-90 0 0"></a-entity>
+    </a-marker>
+    <a-marker id="marker5" type="pattern" url="markers/marker_food5.patt" smooth="true" smoothCount="5" smoothTolerance="0.01" smoothThreshold="2">
+        <a-entity gltf-model="#food5-model" scale="0.1 0.1 0.1" rotation="-90 0 0"></a-entity>
+    </a-marker>
+    <a-marker id="marker6" type="pattern" url="markers/marker_food6.patt" smooth="true" smoothCount="5" smoothTolerance="0.01" smoothThreshold="2">
+        <a-entity gltf-model="#food6-model" scale="0.1 0.1 0.1" rotation="-90 0 0"></a-entity>
+    </a-marker>
+    
+    <a-entity camera></a-entity>
+</a-scene>
+
+<!-- UI 覆蓋層 -->
+<div id="ui-overlay">
+    <div id="food-icon">🥬</div>
+    <div id="food-title">高麗菜</div>
+    <div id="food-category">蔬菜類</div>
+    <button id="confirm-button">✔ 確認選擇這個食物</button>
+</div>
+
+<script>
+// 題目資料
+const backgrounds = [
+    {
+        image: 'imgs/food_question1_0.png',
+        marker: 'marker1',
+        title: '高麗菜',
+        category: '蔬菜類',
+        emoji: '🥬',
+        color: '#4CAF50'
+    },
+    {
+        image: 'imgs/food_question2_0.png',
+        marker: 'marker2',
+        title: '花生',
+        category: '堅果類',
+        emoji: '🥜',
+        color: '#FDD835'
+    },
+    {
+        image: 'imgs/food_question3_0.png',
+        marker: 'marker3',
+        title: '牛排',
+        category: '豆魚蛋肉類',
+        emoji: '🥩',
+        color: '#FF6B6B'
+    },
+    {
+        image: 'imgs/food_question4_0.png',
+        marker: 'marker4',
+        title: '柳丁',
+        category: '水果類',
+        emoji: '🍊',
+        color: '#E040FB'
+    },
+    {
+        image: 'imgs/food_question5_0.png',
+        marker: 'marker5',
+        title: '白飯',
+        category: '全穀雜糧類',
+        emoji: '🍚',
+        color: '#FFB74D'
+    },
+    {
+        image: 'imgs/food_question6_0.png',
+        marker: 'marker6',
+        title: '牛奶',
+        category: '乳品類',
+        emoji: '🥛',
+        color: '#29B6F6'
+    }
+];
+
+// 遊戲狀態
+let selectedBackgrounds = [];
+let currentBackgroundIndex = 0;
+let score = 0;
+let questionsAnswered = 0;
+let currentMarker = null;
+let scannedMarker = null;
+let loadedModels = 0;
+const totalModels = 6;
+
+// ★★★ 新增：防止誤判的變數 ★★★
+let pendingMarker = null;           // 暫時偵測到的 marker
+let markerDetectTime = 0;           // 開始偵測的時間
+const CONFIRM_DELAY = 500;          // 必須持續偵測 0.5 秒才確認
+let markerLostTime = 0;             // marker 消失的時間
+const LOST_TIMEOUT = 2000;          // marker 消失 2 秒後才清除選擇
+let isMarkerVisible = false;        // marker 是否可見
+
+// DOM 元素
+const background = document.getElementById('background');
+const uiOverlay = document.getElementById('ui-overlay');
+const scoreDisplay = document.getElementById('score-display');
+const confirmButton = document.getElementById('confirm-button');
+const questionTitle = document.getElementById('question-title');
+const notification = document.getElementById('notification');
+const debugInfo = document.getElementById('debug-info');
+const startScreen = document.getElementById('start-screen');
+const startButton = document.getElementById('start-button');
+const loadingOverlay = document.getElementById('loading-overlay');
+const resultScreen = document.getElementById('result-screen');
+const restartButton = document.getElementById('restart-button');
+const detectionStatus = document.getElementById('detection-status');
+const missionCard = document.getElementById('mission-card');
+
+// 除錯日誌
+function log(msg) {
+    console.log('[AR]', msg);
+    debugInfo.innerHTML = msg + '<br>' + debugInfo.innerHTML.split('<br>').slice(0, 5).join('<br>');
+}
+
+// 洗牌函數
+function shuffleArray(array) {
+    const arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+}
+
+// 選擇隨機題目
+function selectRandomBackgrounds() {
+    selectedBackgrounds = shuffleArray(backgrounds);
+}
+
+// 設定背景
+function setBackground() {
+    const current = selectedBackgrounds[currentBackgroundIndex];
+    background.style.backgroundImage = `url(${current.image})`;
+    currentMarker = current.marker;
+    
+    // 更新任務卡片
+    document.getElementById('mission-icon').textContent = current.emoji;
+    document.getElementById('mission-target').textContent = current.category;
+    document.getElementById('mission-target').style.color = current.color;
+    
+    log('題目: ' + current.category);
+}
+
+// 更新分數顯示
+function updateScoreDisplay() {
+    scoreDisplay.textContent = `⭐ ${score} 分`;
+}
+
+// 更新題目標題
+function updateQuestionTitle() {
+    document.getElementById('q-num').textContent = questionsAnswered + 1;
+    document.getElementById('progress-fill').style.width = ((questionsAnswered) / 6 * 100) + '%';
+}
+
+// 顯示通知
+function showNotification(msg) {
+    notification.textContent = msg || '請找下一個食物！';
+    notification.style.display = 'block';
+    setTimeout(() => {
+        notification.style.display = 'none';
+    }, 2000);
+}
+
+// 下一題
+function nextQuestion() {
+    questionsAnswered++;
+    if (questionsAnswered < 6) {
+        currentBackgroundIndex++;
+        setBackground();
+        updateQuestionTitle();
+        uiOverlay.style.display = 'none';
+        
+        // ★★★ 重置偵測狀態 ★★★
+        scannedMarker = null;
+        pendingMarker = null;
+        isMarkerVisible = false;
+        detectionStatus.className = '';
+        detectionStatus.style.display = 'none';
+        
+        showNotification();
+    } else {
+        endGame();
+    }
+}
+
+// 結束遊戲
+function endGame() {
+    log('遊戲結束: ' + score + '分');
+    background.style.backgroundImage = 'none';
+    uiOverlay.style.display = 'none';
+    missionCard.style.display = 'none';
+    document.getElementById('final-score').textContent = score;
+    resultScreen.style.display = 'flex';
+}
+
+// 開始遊戲
+function startGame() {
+    log('遊戲開始');
+    startScreen.style.display = 'none';
+    loadingOverlay.style.display = 'flex';
+    
+    setTimeout(() => {
+        loadingOverlay.style.display = 'none';
+        missionCard.style.display = 'flex';
+        selectRandomBackgrounds();
+        currentBackgroundIndex = 0;
+        score = 0;
+        questionsAnswered = 0;
+        scannedMarker = null;
+        pendingMarker = null;
+        isMarkerVisible = false;
+        updateScoreDisplay();
+        setBackground();
+        updateQuestionTitle();
+    }, 2000);
+}
+
+// 重新開始
+function restartGame() {
+    resultScreen.style.display = 'none';
+    missionCard.style.display = 'flex';
+    selectRandomBackgrounds();
+    currentBackgroundIndex = 0;
+    score = 0;
+    questionsAnswered = 0;
+    scannedMarker = null;
+    pendingMarker = null;
+    isMarkerVisible = false;
+    updateScoreDisplay();
+    setBackground();
+    updateQuestionTitle();
+}
+
+// ★★★ 更新 UI 顯示已選擇的食物 ★★★
+function showSelectedFood(markerId) {
+    const foodItem = backgrounds.find(bg => bg.marker === markerId);
+    if (foodItem) {
+        document.getElementById('food-icon').textContent = foodItem.emoji;
+        document.getElementById('food-title').textContent = foodItem.title;
+        document.getElementById('food-category').textContent = foodItem.category;
+        document.getElementById('food-title').style.color = foodItem.color;
+        uiOverlay.style.display = 'block';
+    }
+}
+
+// 確認按鈕事件
+confirmButton.addEventListener('click', () => {
+    if (!scannedMarker) {
+        Swal.fire({
+            toast: true,
+            position: 'center',
+            icon: 'warning',
+            title: '請先掃描食物圖卡！',
+            showConfirmButton: false,
+            timer: 1200
+        });
+        return;
+    }
+    
+    log('確認: ' + scannedMarker + ' vs ' + currentMarker);
+    if (scannedMarker === currentMarker) {
+        score++;
+        updateScoreDisplay();
+        Swal.fire({
+            toast: true,
+            position: 'center',
+            icon: 'success',
+            title: '答對了！+1 分 🎉',
+            showConfirmButton: false,
+            timer: 1200,
+            background: 'rgba(76,175,80,0.95)',
+            color: 'white'
+        });
+    } else {
+        const correct = selectedBackgrounds[currentBackgroundIndex];
+        Swal.fire({
+            toast: true,
+            position: 'center',
+            icon: 'error',
+            title: `答錯了！正確是 ${correct.emoji} ${correct.category}`,
+            showConfirmButton: false,
+            timer: 1500,
+            background: 'rgba(244,67,54,0.95)',
+            color: 'white'
+        });
+    }
+    setTimeout(nextQuestion, 1500);
+});
+
+// 開始按鈕事件
+startButton.addEventListener('click', startGame);
+
+// 重新開始按鈕事件
+restartButton.addEventListener('click', restartGame);
+
+// ★★★ 改進的 Marker 偵測系統 ★★★
+const markerSystem = {
+    currentModel: null,
+    initialScale: {x: 0.1, y: 0.1, z: 0.1},
+    initialRotation: {x: -90, y: 0, z: 0},
+    lastPosition: {x: 0, y: 0},
+    initialDistance: 0,
+    isMoving: false,
+    isScaling: false,
+
+    init() {
+        document.querySelectorAll('a-marker').forEach(marker => {
+            marker.addEventListener('markerFound', this.onMarkerFound.bind(this));
+            marker.addEventListener('markerLost', this.onMarkerLost.bind(this));
+        });
+
+        document.addEventListener('touchstart', this.onTouchStart.bind(this));
+        document.addEventListener('touchmove', this.onTouchMove.bind(this));
+        document.addEventListener('touchend', this.onTouchEnd.bind(this));
+        
+        // 定時檢查 marker 狀態
+        setInterval(this.checkMarkerState.bind(this), 100);
+        
+        log('Marker 監聽已設定（已加強防誤判）');
+    },
+
+    // ★★★ 改進的 markerFound ★★★
+    onMarkerFound(event) {
+        const markerId = event.target.id;
+        const now = Date.now();
+        
+        log('偵測到: ' + markerId);
+        
+        // 如果是新的 marker，開始計時
+        if (pendingMarker !== markerId) {
+            pendingMarker = markerId;
+            markerDetectTime = now;
+            detectionStatus.textContent = '偵測中...';
+            detectionStatus.className = 'detecting';
+        }
+        
+        isMarkerVisible = true;
+        markerLostTime = 0;
+        
+        // 設定當前模型
+        this.currentModel = event.target.querySelector('a-entity');
+        if (this.currentModel) {
+            this.initialScale = this.currentModel.getAttribute('scale');
+            this.initialRotation = this.currentModel.getAttribute('rotation');
+        }
+    },
+
+    // ★★★ 改進的 markerLost ★★★
+    onMarkerLost(event) {
+        const markerId = event.target.id;
+        log('消失: ' + markerId);
+        
+        isMarkerVisible = false;
+        markerLostTime = Date.now();
+        
+        // 如果正在偵測這個 marker，取消偵測
+        if (pendingMarker === markerId && !scannedMarker) {
+            pendingMarker = null;
+            detectionStatus.className = '';
+            detectionStatus.style.display = 'none';
+        }
+        
+        this.currentModel = null;
+    },
+
+    // ★★★ 定時檢查 marker 狀態 ★★★
+    checkMarkerState() {
+        const now = Date.now();
+        
+        // 檢查是否持續偵測到足夠時間
+        if (pendingMarker && isMarkerVisible && !scannedMarker) {
+            if (now - markerDetectTime >= CONFIRM_DELAY) {
+                // 確認偵測成功
+                scannedMarker = pendingMarker;
+                log('✓ 確認偵測: ' + scannedMarker);
+                detectionStatus.textContent = '已偵測 ✓';
+                detectionStatus.className = 'confirmed';
+                showSelectedFood(scannedMarker);
+            }
+        }
+        
+        // 檢查 marker 消失是否超過時間
+        if (scannedMarker && !isMarkerVisible && markerLostTime > 0) {
+            if (now - markerLostTime >= LOST_TIMEOUT) {
+                // 清除選擇
+                log('⚠ 超時清除選擇');
+                scannedMarker = null;
+                pendingMarker = null;
+                uiOverlay.style.display = 'none';
+                detectionStatus.className = '';
+                detectionStatus.style.display = 'none';
+            }
+        }
+    },
+
+    onTouchStart(event) {
+        if (!this.currentModel) return;
+
+        if (event.touches.length === 2) {
+            this.isScaling = true;
+            this.initialDistance = this.getDistance(event.touches[0], event.touches[1]);
+        } else if (event.touches.length === 1) {
+            this.isMoving = true;
+            this.lastPosition = {
+                x: event.touches[0].pageX,
+                y: event.touches[0].pageY
+            };
+        }
+    },
+
+    onTouchMove(event) {
+        if (!this.currentModel) return;
+
+        if (this.isScaling && event.touches.length === 2) {
+            const currentDistance = this.getDistance(event.touches[0], event.touches[1]);
+            const scaleFactor = currentDistance / this.initialDistance;
+
+            const minScale = 0.05;
+            const maxScale = 0.3;
+            let newScale = {
+                x: Math.min(Math.max(this.initialScale.x * scaleFactor, minScale), maxScale),
+                y: Math.min(Math.max(this.initialScale.y * scaleFactor, minScale), maxScale),
+                z: Math.min(Math.max(this.initialScale.z * scaleFactor, minScale), maxScale)
+            };
+
+            this.currentModel.setAttribute('scale', newScale);
+
+        } else if (this.isMoving && event.touches.length === 1) {
+            const deltaX = event.touches[0].pageX - this.lastPosition.x;
+            const deltaY = event.touches[0].pageY - this.lastPosition.y;
+
+            const currentPosition = this.currentModel.getAttribute('position');
+            const sensitivity = 0.002;
+
+            this.currentModel.setAttribute('position', {
+                x: currentPosition.x + deltaX * sensitivity,
+                y: currentPosition.y - deltaY * sensitivity,
+                z: currentPosition.z
+            });
+
+            this.lastPosition = {
+                x: event.touches[0].pageX,
+                y: event.touches[0].pageY
+            };
+        }
+    },
+
+    onTouchEnd() {
+        if (this.currentModel) {
+            this.isMoving = false;
+            this.isScaling = false;
+            this.initialScale = this.currentModel.getAttribute('scale');
+        }
+    },
+
+    getDistance(touch1, touch2) {
+        const dx = touch1.pageX - touch2.pageX;
+        const dy = touch1.pageY - touch2.pageY;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+};
+
+// 模型載入檢查
+function checkAllModelsLoaded() {
+    loadedModels++;
+    document.getElementById('loading-text').textContent = `模型載入中... (${loadedModels}/${totalModels})`;
+    if (loadedModels === totalModels) {
+        log('所有模型已載入');
+    }
+}
+
+// 初始化
+document.addEventListener('DOMContentLoaded', () => {
+    log('頁面載入完成');
+    
+    // 監聽模型載入
+    for (let i = 1; i <= totalModels; i++) {
+        const model = document.querySelector(`#food${i}-model`);
+        if (model) {
+            model.addEventListener('loaded', checkAllModelsLoaded);
+        }
+    }
+    
+    // 初始化 marker 系統
+    const scene = document.querySelector('a-scene');
+    if (scene.hasLoaded) {
+        markerSystem.init();
+    } else {
+        scene.addEventListener('loaded', () => {
+            log('AR 場景就緒');
+            markerSystem.init();
+        });
+    }
+});
+</script>
+</body>
+</html>
